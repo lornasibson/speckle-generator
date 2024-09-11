@@ -14,12 +14,25 @@ def even_grid():
     #Making every marker a different size
     num_dots = x_number * y_number
     dot_size = np.random.randint(20, 500, num_dots)
+    area = dot_area(dot_size)
+    print(area)
 
     # plt.plot(x_coords, y_coords, marker='o', color='k', linestyle='none', markersize=dot_size)
     plt.scatter(x_coords, y_coords, dot_size, marker='o', color='k')
     plt.xticks([])
     plt.yticks([])
     plt.show()
+
+def dot_area(dot_size):
+    area = 0
+    for dot in dot_size:
+        diam_pts = dot**0.5
+        diam_inch = diam_pts * (1/72)
+        rad_inch = diam_inch / 2
+        dot_area = np.pi * (rad_inch**2)
+        area += dot_area
+    return area
+
 
 #Trying similar code from ElsevierSoftwareX Github
 def insert_circle(image, position, radius):
@@ -62,7 +75,5 @@ dot_radius_max = 10
 dot_radius_min = 8
 img = dot_speckle(size, n_dots, dot_radius_max, dot_radius_min)
 
-plt.imshow(img, cmap='binary', vmin=0, vmax=1)
-plt.axis('off')
-plt.show()
+even_grid()
 
