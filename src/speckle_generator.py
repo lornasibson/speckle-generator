@@ -4,16 +4,17 @@ import matplotlib.pyplot as plt
 def even_grid():
     width = 800
     height = 600
-    x_number = 10
-    y_number = 10
+    x_number = int(width / 50)
+    y_number = int(height / 50)
     px = 1/plt.rcParams['figure.dpi'] #pixel to inch conversion
     x_values = np.linspace(0, width, x_number)
     y_values = np.linspace(0, height, y_number)
     x_coords, y_coords = np.meshgrid(x_values, y_values)
 
-    dot_size = 500
+    dot_size = 100
     #Making every marker a different size
     area = dot_area(dot_size, px)
+
 
     tot_area = width * height
     bw_ratio = (area / tot_area) * 100
@@ -36,6 +37,42 @@ def dot_area(dot_size, px):
         dot_area = np.pi * (rad_px**2)
         area += dot_area
     return area
+
+def random_speckle():
+    width = 800
+    height = 600
+    x_number = int(width / 50)
+    y_number = int(height / 50)
+    px = 1/plt.rcParams['figure.dpi'] #pixel to inch conversion
+    x_values = np.linspace(0, width, x_number)
+    y_values = np.linspace(0, height, y_number) 
+    
+    x_coords = np.zeros((y_number, x_number))
+    y_coords = np.zeros((y_number, x_number))
+
+    for i in range(x_number):
+        for j in range(y_number):
+            x_coords[j][i] = np.random.randint(0, width)
+
+    for i in range(x_number):
+        for j in range(y_number):
+            y_coords[j][i] = np.random.randint(0, height)   
+
+    dot_size = 100
+    area = dot_area(dot_size, px)
+
+
+    tot_area = width * height
+    bw_ratio = (area / tot_area) * 100
+    print('B/w ratio:', bw_ratio, '%')
+
+    # plt.plot(x_coords, y_coords, marker='o', color='k', linestyle='none', markersize=dot_size)
+    plt.figure(figsize=(width*px, height*px))
+    plt.scatter(x_coords, y_coords, dot_size, marker='o', color='k')
+    plt.xticks([])
+    plt.yticks([])
+    plt.show()
+
 
 
 #Trying similar code from ElsevierSoftwareX Github
@@ -79,5 +116,5 @@ dot_radius_max = 10
 dot_radius_min = 8
 img = dot_speckle(size, n_dots, dot_radius_max, dot_radius_min)
 
-even_grid()
+random_speckle()
 
