@@ -73,17 +73,20 @@ def random_speckle():
     plt.scatter(x_coords, y_coords, dot_size, marker='o', color='k')
     plt.xticks([])
     plt.yticks([])
-    plt.savefig('speckle_pattern.png')
+    plt.show()
+    # plt.savefig('speckle_pattern.png')
     
-    
-    img = Image.open('speckle_pattern.png')
-    im_data = np.array(img)
-    h, w = im_data.shape[:2]
-    colours, counts = np.unique(im_data.reshape(-1,3), axis=0, return_counts=1)
-    for index, colour in enumerate(colours):
-        count = counts[index]
-        proportion = (100 * count) / (h * w)
-        print(type(colour))
+
+    # img = Image.open('speckle_pattern.png')
+    # im_data = np.array(img)
+    # h, w = im_data.shape[:2]
+    # colours, counts = np.unique(im_data.reshape(-1,3), axis=0, return_counts=1)
+    # for index, colour in enumerate(colours):
+    #     count = counts[index]
+    #     proportion = (100 * count) / (h * w)
+    #     black = np.array([0, 0, 0])
+    #     if np.array_equal(colour, black):
+    #         print(proportion)
         #print(f"   Colour: {colour}, count: {count}, proportion: {proportion:.2f}%")
 
 
