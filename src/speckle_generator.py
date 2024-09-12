@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from PIL import Image
 from matplotlib.patches import Circle
@@ -92,10 +93,11 @@ def random_speckle():
         #print(f"   Colour: {colour}, count: {count}, proportion: {proportion:.2f}%")
 
 def array_speckle():
+    mpl.rcParams['savefig.pad_inches'] = 0
     px = 1/plt.rcParams['figure.dpi'] #pixel to inch conversion
     size_x = 800
     size_y = 600
-    num_dots = 200
+    num_dots = 100
     proportion = 0
     proportion_goal = 50
     radius = 10
@@ -106,6 +108,14 @@ def array_speckle():
     plt.imshow(image, cmap='gray')
     fig = plt.gcf()
     ax = fig.gca()
+    plt.gca().set_axis_off()
+    plt.subplots_adjust(top = 1, bottom = 0, right = 1, left = 0, hspace = 0, wspace = 0)
+    plt.margins(0,0)
+    plt.gca().xaxis.set_major_locator(plt.NullLocator())
+    plt.gca().yaxis.set_major_locator(plt.NullLocator())
+    # ax.set_frame_on(False)
+    # for item in [fig, ax]:
+    #     item.patch.set_visible(False)
     #while proportion < proportion_goal:
     for i in range(num_dots):
         pos_x = np.random.randint(0, size_x)
@@ -119,21 +129,30 @@ def array_speckle():
     img_arr = np.reshape(np.frombuffer(io_buf.getvalue(), dtype=np.uint8),
                         newshape=(int(fig.bbox.bounds[3]), int(fig.bbox.bounds[2]), -1))
     threshold = 150
-    img_binary = 1.0 * (img_arr > threshold)
+    img_binary = 255 * (img_arr > threshold)
+    #img_cropped = img_binary[50:650, 50:850, :]
     io_buf.close()
     h, w = img_binary.shape[:2]
     colours, counts = np.unique(img_binary.reshape(-1,3), axis=0, return_counts=1)
-    print(colours)
+    countsum = 0
     for index, colour in enumerate(colours):
         count = counts[index]
+        # print("Colour: ", colour, "Count: ", count)
         all_proportion = (100 * count) / (h * w)
+        white = np.array([255, 255, 255])
         black = np.array([0, 0, 0])
-        if np.array_equal(colour, black):
+        if np.array_equal(colour, white):
             proportion = all_proportion
-            print(proportion)
+            print('White proportion: ', proportion)
+        elif np.array_equal(colour, black):
+            print('Black proportion:', all_proportion)
 
+    print(countsum)
+    plt.savefig('speckle_pattern_2', bbox_inches='tight', pad_inches=0)
     plt.show()
+    
 
 #Main script
+
 array_speckle()
 
