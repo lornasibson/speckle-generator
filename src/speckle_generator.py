@@ -93,6 +93,7 @@ def random_speckle():
 
 def array_speckle():
     px = 1/plt.rcParams['figure.dpi'] #pixel to inch conversion
+    counter = 0
     size_x = 800
     size_y = 600
     proportion = 0
@@ -125,6 +126,7 @@ def array_speckle():
             black = np.array([0, 0, 0])
             if np.array_equal(colour, black):
                 proportion = all_proportion
+            counter += 1
     plt.show()
 
 #Main script
