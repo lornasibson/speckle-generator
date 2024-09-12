@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from matplotlib.patches import Circle
 import io
+from scipy.ndimage import gaussian_filter
 
 def even_grid():
     width = 800
@@ -159,10 +160,10 @@ def muDIC_speckle():
     px = 1/plt.rcParams['figure.dpi'] #pixel to inch conversion
     size_x = 800
     size_y = 600
-    num_dots = 600
+    num_dots = 800
     proportion = 0
     proportion_goal = 50
-    radius = 10
+    radius = 8
     image = np.zeros((size_y, size_x))
     # Add circle
     circle = np.zeros((radius * 2, radius * 2))
@@ -172,17 +173,33 @@ def muDIC_speckle():
     count = 0
 
     for i in range(num_dots):
-        pos_x = np.random.randint(0, size_x)
-        pos_y = np.random.randint(0, size_y)
+        pos_x = np.random.randint(radius, (size_x - radius))
+        pos_y = np.random.randint(radius, (size_y - radius))
+        
+        # Calculate slice indices
+        x_start, x_end = pos_x - radius, pos_x + radius
+        y_start, y_end = pos_y - radius, pos_y + radius
+        
+        # Check the slices
+        print(f"Slicing image: x({x_start}:{x_end}), y({y_start}:{y_end})")
 
-        image[pos_x-radius:pos_x+radius, pos_y-radius:pos_y+radius] += circle
-        count += 1
-        print(count)
+        if x_start >= 0 and x_end <= size_x and y_start >= 0 and y_end <= size_y:
+            image[y_start:y_end, x_start:x_end] += circle
+        else:
+            print(f"Skipping out-of-bounds circle at position ({pos_x}, {pos_y})")
+        
+        #image[pos_x-radius:pos_x+radius, pos_y-radius:pos_y+radius] += circle
+   
+    # filtered = gaussian_filter(image, 0.1)
+
+    # filter_normalised = (filtered - np.min(filtered)) / (np.max(filtered) - np.min(filtered))
+
+    img_final = image * -1 + 1
 
     plt.figure(figsize=(size_x*px, size_y*px))
     plt.xticks([])
     plt.yticks([])
-    plt.imshow(image, cmap='grey')
+    plt.imshow(img_final, cmap='grey', vmin=0, vmax=1)
     plt.show()
     # fig = plt.gcf()
     # ax = fig.gca()
