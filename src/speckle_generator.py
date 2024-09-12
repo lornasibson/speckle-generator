@@ -169,38 +169,39 @@ def muDIC_speckle():
     circle = np.zeros((radius * 2, radius * 2))
     xs, ys = np.meshgrid(np.arange(2 * radius), np.arange(2* radius))
     r = ((xs - radius) ** 2 + (ys - radius) ** 2)** 0.5
-    circle[r < radius] = 1
+    if (circle[r < radius] == 0).all():
+        circle[r < radius] = 1
+    else:
+        circle[r < radius] = 0
     count = 0
 
     for i in range(num_dots):
         pos_x = np.random.randint(radius, (size_x - radius))
         pos_y = np.random.randint(radius, (size_y - radius))
-        
-        # Calculate slice indices
+    
         x_start, x_end = pos_x - radius, pos_x + radius
         y_start, y_end = pos_y - radius, pos_y + radius
-        
-        # Check the slices
-        print(f"Slicing image: x({x_start}:{x_end}), y({y_start}:{y_end})")
 
         if x_start >= 0 and x_end <= size_x and y_start >= 0 and y_end <= size_y:
             image[y_start:y_end, x_start:x_end] += circle
         else:
             print(f"Skipping out-of-bounds circle at position ({pos_x}, {pos_y})")
-        
-        #image[pos_x-radius:pos_x+radius, pos_y-radius:pos_y+radius] += circle
-   
-    # filtered = gaussian_filter(image, 0.1)
 
-    # filter_normalised = (filtered - np.min(filtered)) / (np.max(filtered) - np.min(filtered))
+    h, w = image.shape[:2]
+    colours, counts = np.unique(image, return_counts=1)
+    for index, colour in enumerate(colours):
+        count = counts[index]
+        all_proportion = (100 * count) / (h * w)
+        print("Colour: ", colour, "Count: ", count, "Proportion: ", all_proportion)
 
-    img_final = image * -1 + 1
+    # plt.figure(figsize=(size_x*px, size_y*px))
+    # plt.xticks([])
+    # plt.yticks([])
+    # plt.imshow(img_final, cmap='grey', vmin=0, vmax=1)
+    # plt.show()
 
-    plt.figure(figsize=(size_x*px, size_y*px))
-    plt.xticks([])
-    plt.yticks([])
-    plt.imshow(img_final, cmap='grey', vmin=0, vmax=1)
-    plt.show()
+
+
     # fig = plt.gcf()
     # ax = fig.gca()
     # plt.gca().set_axis_off()
