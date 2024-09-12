@@ -160,8 +160,8 @@ def muDIC_speckle():
     px = 1/plt.rcParams['figure.dpi'] #pixel to inch conversion
     size_x = 800
     size_y = 600
-    num_dots = 800
-    proportion = 0
+    num_dots = 50
+    proportion = 100
     proportion_goal = 50
     radius = 8
     image = np.zeros((size_y, size_x))
@@ -174,31 +174,36 @@ def muDIC_speckle():
     else:
         circle[r < radius] = 0
     count = 0
-
-    for i in range(num_dots):
-        pos_x = np.random.randint(radius, (size_x - radius))
-        pos_y = np.random.randint(radius, (size_y - radius))
     
-        x_start, x_end = pos_x - radius, pos_x + radius
-        y_start, y_end = pos_y - radius, pos_y + radius
+    while proportion > proportion_goal:
+        for i in range(num_dots):
+            pos_x = np.random.randint(radius, (size_x - radius))
+            pos_y = np.random.randint(radius, (size_y - radius))
+        
+            x_start, x_end = pos_x - radius, pos_x + radius
+            y_start, y_end = pos_y - radius, pos_y + radius
 
-        if x_start >= 0 and x_end <= size_x and y_start >= 0 and y_end <= size_y:
-            image[y_start:y_end, x_start:x_end] += circle
-        else:
-            print(f"Skipping out-of-bounds circle at position ({pos_x}, {pos_y})")
+            if x_start >= 0 and x_end <= size_x and y_start >= 0 and y_end <= size_y:
+                image[y_start:y_end, x_start:x_end] += circle
+            else:
+                print(f"Skipping out-of-bounds circle at position ({pos_x}, {pos_y})")
 
-    h, w = image.shape[:2]
-    colours, counts = np.unique(image, return_counts=1)
-    for index, colour in enumerate(colours):
-        count = counts[index]
-        all_proportion = (100 * count) / (h * w)
-        print("Colour: ", colour, "Count: ", count, "Proportion: ", all_proportion)
+        h, w = image.shape[:2]
+        colours, counts = np.unique(image, return_counts=1)
+        for index, colour in enumerate(colours):
+            count = counts[index]
+            all_proportion = (100 * count) / (h * w)
+            if colour == 0.0:
+                proportion = all_proportion
+                print(proportion)
+        num_dots += 50
+        print(num_dots)
 
-    # plt.figure(figsize=(size_x*px, size_y*px))
-    # plt.xticks([])
-    # plt.yticks([])
-    # plt.imshow(img_final, cmap='grey', vmin=0, vmax=1)
-    # plt.show()
+    plt.figure(figsize=(size_x*px, size_y*px))
+    plt.xticks([])
+    plt.yticks([])
+    plt.imshow(image, cmap='grey', vmin=0, vmax=1)
+    plt.show()
 
 
 
