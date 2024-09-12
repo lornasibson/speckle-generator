@@ -93,9 +93,9 @@ def random_speckle():
 
 def array_speckle():
     px = 1/plt.rcParams['figure.dpi'] #pixel to inch conversion
-    counter = 0
     size_x = 800
     size_y = 600
+    num_dots = 200
     proportion = 0
     proportion_goal = 50
     radius = 10
@@ -106,27 +106,32 @@ def array_speckle():
     plt.imshow(image, cmap='gray')
     fig = plt.gcf()
     ax = fig.gca()
-    while proportion < proportion_goal:
+    #while proportion < proportion_goal:
+    for i in range(num_dots):
         pos_x = np.random.randint(0, size_x)
         pos_y = np.random.randint(0, size_y)
         circ = plt.Circle((pos_x, pos_y), radius, color='w')
         ax.add_patch(circ)
-    
-        io_buf = io.BytesIO()
-        fig.savefig(io_buf, format='raw')#dpi=36)#DPI)
-        io_buf.seek(0)
-        img_arr = np.reshape(np.frombuffer(io_buf.getvalue(), dtype=np.uint8),
-                         newshape=(int(fig.bbox.bounds[3]), int(fig.bbox.bounds[2]), -1))
-        io_buf.close()
-        h, w = img_arr.shape[:2]
-        colours, counts = np.unique(img_arr.reshape(-1,3), axis=0, return_counts=1)
-        for index, colour in enumerate(colours):
-            count = counts[index]
-            all_proportion = (100 * count) / (h * w)
-            black = np.array([0, 0, 0])
-            if np.array_equal(colour, black):
-                proportion = all_proportion
-            counter += 1
+
+    io_buf = io.BytesIO()
+    fig.savefig(io_buf, format='raw')#dpi=36)#DPI)
+    io_buf.seek(0)
+    img_arr = np.reshape(np.frombuffer(io_buf.getvalue(), dtype=np.uint8),
+                        newshape=(int(fig.bbox.bounds[3]), int(fig.bbox.bounds[2]), -1))
+    threshold = 150
+    img_binary = 1.0 * (img_arr > threshold)
+    io_buf.close()
+    h, w = img_binary.shape[:2]
+    colours, counts = np.unique(img_binary.reshape(-1,3), axis=0, return_counts=1)
+    print(colours)
+    for index, colour in enumerate(colours):
+        count = counts[index]
+        all_proportion = (100 * count) / (h * w)
+        black = np.array([0, 0, 0])
+        if np.array_equal(colour, black):
+            proportion = all_proportion
+            print(proportion)
+
     plt.show()
 
 #Main script
