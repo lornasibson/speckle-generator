@@ -5,6 +5,7 @@ from PIL import Image
 from matplotlib.patches import Circle
 import io
 from scipy.ndimage import gaussian_filter
+import os
 
 def even_grid():
     width = 800
@@ -158,6 +159,7 @@ def array_speckle():
 def muDIC_speckle():
     mpl.rcParams['savefig.pad_inches'] = 0
     px = 1/plt.rcParams['figure.dpi'] #pixel to inch conversion
+    white_bg = 'Yes'
     size_x = 800
     size_y = 600
     num_dots = 50
@@ -196,13 +198,19 @@ def muDIC_speckle():
             if colour == 0.0:
                 proportion = all_proportion
                 print(proportion)
-        num_dots += 50
-        print(num_dots)
-
+        num_dots += 1
+    
+    filtered = gaussian_filter(image, 0.6)
+    if white_bg == 'Yes':
+        filtered = filtered * -1 + 1
     plt.figure(figsize=(size_x*px, size_y*px))
     plt.xticks([])
     plt.yticks([])
-    plt.imshow(image, cmap='grey', vmin=0, vmax=1)
+    plt.imshow(filtered, cmap='grey', vmin=0, vmax=1)
+    os.chdir('/home/lorna/speckle-generator')
+    filepath = os.getcwd()
+    filename = 'speckle_pattern.tiff'
+    plt.savefig(os.path.join(filepath, filename), format='tiff', bbox_inches='tight', pad_inches=0)
     plt.show()
 
 
@@ -221,6 +229,6 @@ def muDIC_speckle():
 
 
 #Main script
-
-muDIC_speckle()
+if __name__ == '__main__':
+    muDIC_speckle()
 
