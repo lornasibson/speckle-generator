@@ -130,18 +130,12 @@ def array_speckle():
     print(total_prop)
     plt.show()
 
-def muDIC_speckle():
+def muDIC_speckle(size_x, size_y, radius, proportion_goal, file_format, image_res, white_bg):
     mpl.rcParams['savefig.pad_inches'] = 0
     px = 1/plt.rcParams['figure.dpi'] #pixel to inch conversion
-    white_bg = 'Yes'
-    file_format = 'tiff'
-    image_res = 100
-    size_x = 800
-    size_y = 600
     num_dots = 50
     proportion = 100
-    proportion_goal = 50
-    radius = 8
+    
     image = np.zeros((size_y, size_x))
 
     circle = np.zeros((radius * 2, radius * 2))
@@ -235,5 +229,12 @@ def fourier_transform(image):
 
 #Main script
 if __name__ == '__main__':
-    muDIC_speckle()
+    size_x = 800
+    size_y = 600
+    radius = 8
+    proportion_goal = 50
+    file_format = 'tiff'
+    white_bg = 'Yes' #Set to 'Yes' for white background with black speckles, set to 'No' for black background with white speckles
+    image_res = 100
+    muDIC_speckle(size_x, size_y, radius, proportion_goal, file_format, white_bg, image_res)
 
