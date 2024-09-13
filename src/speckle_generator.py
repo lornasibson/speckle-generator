@@ -162,6 +162,8 @@ def muDIC_speckle():
     mpl.rcParams['savefig.pad_inches'] = 0
     px = 1/plt.rcParams['figure.dpi'] #pixel to inch conversion
     white_bg = 'Yes'
+    file_format = 'tiff'
+    image_res = 100
     size_x = 800
     size_y = 600
     num_dots = 50
@@ -211,11 +213,11 @@ def muDIC_speckle():
     plt.imshow(filtered, cmap='grey', vmin=0, vmax=1)
     os.chdir('/home/lorna/speckle-generator')
     filepath = os.getcwd()
-    filename = 'speckle_pattern.tiff'
-    plt.savefig(os.path.join(filepath, filename), format='tiff', bbox_inches='tight', pad_inches=0)
+    filename = 'speckle_pattern.' + file_format
+    plt.savefig(os.path.join(filepath, filename), format=file_format, bbox_inches='tight', pad_inches=0, dpi=image_res)
     plt.show()
     
-    fourier_transform(filtered)
+    # fourier_transform(filtered)
 
 def radial_profile(data):
     y, x = np.indices((data.shape))
@@ -226,12 +228,12 @@ def radial_profile(data):
     r_sorted_data = data.flat[r_sorted]
     r_sorted_radius = r.flat[r_sorted]
 
-    r_bin_edges = np.arange(r_sorted_radius.max() + 1)
-    r_bin_indices = np.digitize(r_sorted_radius, bins=r_bin_edges)
-    r_bin_means = ndimage.mean(r_sorted_data, labels=r_bin_indices, index=np.arange(1, len(r_bin_edges)))
-    # r_bin_means = ndimage.mean(r_sorted_data, labels=r_sorted_radius, index=r_bin_edges[:-1])
+    r_bin_edges = np.arange(0, r_sorted_radius.max() + 1)
+    radial_sum = np.bincount(r_sorted_radius.astype(int), weights=r_sorted_data)
+    radial_count = np.bincount(r_sorted_radius.astype(int))
+    radial_mean = radial_sum / radial_count
 
-    return r_bin_edges[:-1], r_bin_means
+    return r_bin_edges[:len(radial_mean)], radial_mean
 
 def fourier_transform(image):
     ft = fft.fft2(image)
@@ -250,7 +252,7 @@ def fourier_transform(image):
     print('Speckle size:', speckle_size)
     
     plt.plot(radii, radial_avg)
-    plt.xlabel('Spation Frequency')
+    plt.xlabel('Spatial Frequency')
     plt.ylabel('Amplitude')
     plt.show()
 
