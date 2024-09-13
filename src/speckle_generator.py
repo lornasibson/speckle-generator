@@ -130,7 +130,7 @@ def array_speckle():
     print(total_prop)
     plt.show()
 
-def muDIC_speckle(size_x, size_y, radius, proportion_goal, file_format, image_res, white_bg):
+def muDIC_speckle(size_x, size_y, radius, proportion_goal, file_format, white_bg, image_res):
     mpl.rcParams['savefig.pad_inches'] = 0
     px = 1/plt.rcParams['figure.dpi'] #pixel to inch conversion
     num_dots = 50
@@ -234,7 +234,7 @@ if __name__ == '__main__':
     radius = 8
     proportion_goal = 50
     file_format = 'tiff'
-    white_bg = 'Yes' #Set to 'Yes' for white background with black speckles, set to 'No' for black background with white speckles
+    white_bg = 'Yes' #Set to yes for white background with black speckles, set to 'No' for black background with white speckles
     image_res = 100
     muDIC_speckle(size_x, size_y, radius, proportion_goal, file_format, white_bg, image_res)
 
