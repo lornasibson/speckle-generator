@@ -8,7 +8,7 @@ from scipy import fft
 # from PIL import Image
 # from matplotlib.patches import Circle
 
-
+# Using scatter plot
 def even_grid():
     width = 800
     height = 600
@@ -76,7 +76,8 @@ def random_speckle():
     plt.yticks([])
     plt.show()
 
-def array_speckle():
+# Using Circle patch
+def circle_speckle():
     mpl.rcParams['savefig.pad_inches'] = 0
     px = 1/plt.rcParams['figure.dpi'] #pixel to inch conversion
     size_x = 800
@@ -130,7 +131,8 @@ def array_speckle():
     print(total_prop)
     plt.show()
 
-def muDIC_speckle(size_x, size_y, radius, proportion_goal, filename, file_format, white_bg, image_res):
+# Using a 2D array
+def array_speckle(size_x, size_y, radius, proportion_goal, filename, file_format, white_bg, image_res):
     mpl.rcParams['savefig.pad_inches'] = 0
     px = 1/plt.rcParams['figure.dpi'] #pixel to inch conversion
     num_dots = 50
@@ -207,5 +209,5 @@ if __name__ == '__main__':
     file_format = 'tiff'
     white_bg = 'Yes' #Set to yes for white background with black speckles, set to 'No' for black background with white speckles
     image_res = 100
-    muDIC_speckle(size_x, size_y, radius, proportion_goal, filename, file_format, white_bg, image_res)
+    array_speckle(size_x, size_y, radius, proportion_goal, filename, file_format, white_bg, image_res)
 
