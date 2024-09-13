@@ -130,7 +130,7 @@ def array_speckle():
     print(total_prop)
     plt.show()
 
-def muDIC_speckle(size_x, size_y, radius, proportion_goal, file_format, white_bg, image_res):
+def muDIC_speckle(size_x, size_y, radius, proportion_goal, filename, file_format, white_bg, image_res):
     mpl.rcParams['savefig.pad_inches'] = 0
     px = 1/plt.rcParams['figure.dpi'] #pixel to inch conversion
     num_dots = 50
@@ -171,6 +171,7 @@ def muDIC_speckle(size_x, size_y, radius, proportion_goal, file_format, white_bg
         num_dots += 1
     
     filtered = gaussian_filter(image, 0.6)
+    print(filtered.shape)
     if white_bg == 'Yes':
         filtered = filtered * -1 + 1
     plt.figure(figsize=(size_x*px, size_y*px))
@@ -179,47 +180,16 @@ def muDIC_speckle(size_x, size_y, radius, proportion_goal, file_format, white_bg
     plt.imshow(filtered, cmap='grey', vmin=0, vmax=1)
     os.chdir('/home/lorna/speckle-generator')
     filepath = os.getcwd()
-    filename = 'speckle_pattern.' + file_format
-    plt.savefig(os.path.join(filepath, filename), format=file_format, bbox_inches='tight', pad_inches=0, dpi=image_res)
+    filename_full = filename + '.' + file_format
+    plt.savefig(os.path.join(filepath, filename_full), format=file_format, bbox_inches='tight', pad_inches=0, dpi=image_res)
     plt.show()
     
     # fourier_transform(filtered)
-
-def radial_profile(data):
-    y, x = np.indices((data.shape))
-    center = np.array([(x.max() - x.min())/2.0, (y.max() - y.min())/2.0])
-    r = np.hypot(x - center[0], y - center[1])
-
-    r_sorted = np.argsort(r.flat)
-    r_sorted_data = data.flat[r_sorted]
-    r_sorted_radius = r.flat[r_sorted]
-
-    r_bin_edges = np.arange(0, r_sorted_radius.max() + 1)
-    radial_sum = np.bincount(r_sorted_radius.astype(int), weights=r_sorted_data)
-    radial_count = np.bincount(r_sorted_radius.astype(int))
-    radial_mean = radial_sum / radial_count
-
-    return r_bin_edges[:len(radial_mean)], radial_mean
 
 def fourier_transform(image):
     ft = fft.fft2(image)
     fft_shifted = fft.fftshift(ft)
     magnitude_spectrum = np.abs(fft_shifted)
-
-    radii, radial_avg = radial_profile(magnitude_spectrum)
-
-    dominant_freq_index = np.argmax(radial_avg)
-    print(dominant_freq_index)
-    dom_freq = radii[dominant_freq_index]
-    print(dom_freq)
-
-    speckle_size = 1 / dom_freq
-    print('Speckle size:', speckle_size)
-    
-    plt.plot(radii, radial_avg)
-    plt.xlabel('Spatial Frequency')
-    plt.ylabel('Amplitude')
-    plt.show()
 
     plt.imshow(np.log(magnitude_spectrum + 1), cmap='gray')
     plt.colorbar()
@@ -231,10 +201,11 @@ def fourier_transform(image):
 if __name__ == '__main__':
     size_x = 800
     size_y = 600
-    radius = 8
+    radius = 5
     proportion_goal = 50
+    filename = 'speckle_pattern_rad=5'
     file_format = 'tiff'
     white_bg = 'Yes' #Set to yes for white background with black speckles, set to 'No' for black background with white speckles
     image_res = 100
-    muDIC_speckle(size_x, size_y, radius, proportion_goal, file_format, white_bg, image_res)
+    muDIC_speckle(size_x, size_y, radius, proportion_goal, filename, file_format, white_bg, image_res)
 
