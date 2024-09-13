@@ -6,6 +6,8 @@ from matplotlib.patches import Circle
 import io
 from scipy.ndimage import gaussian_filter
 import os
+from scipy import fft
+from scipy import ndimage
 
 def even_grid():
     width = 800
@@ -211,6 +213,49 @@ def muDIC_speckle():
     filepath = os.getcwd()
     filename = 'speckle_pattern.tiff'
     plt.savefig(os.path.join(filepath, filename), format='tiff', bbox_inches='tight', pad_inches=0)
+    plt.show()
+    
+    fourier_transform(filtered)
+
+def radial_profile(data):
+    y, x = np.indices((data.shape))
+    center = np.array([(x.max() - x.min())/2.0, (y.max() - y.min())/2.0])
+    r = np.hypot(x - center[0], y - center[1])
+
+    r_sorted = np.argsort(r.flat)
+    r_sorted_data = data.flat[r_sorted]
+    r_sorted_radius = r.flat[r_sorted]
+
+    r_bin_edges = np.arange(r_sorted_radius.max() + 1)
+    r_bin_indices = np.digitize(r_sorted_radius, bins=r_bin_edges)
+    r_bin_means = ndimage.mean(r_sorted_data, labels=r_bin_indices, index=np.arange(1, len(r_bin_edges)))
+    # r_bin_means = ndimage.mean(r_sorted_data, labels=r_sorted_radius, index=r_bin_edges[:-1])
+
+    return r_bin_edges[:-1], r_bin_means
+
+def fourier_transform(image):
+    ft = fft.fft2(image)
+    fft_shifted = fft.fftshift(ft)
+    magnitude_spectrum = np.abs(fft_shifted)
+
+    radii, radial_avg = radial_profile(magnitude_spectrum)
+    # print('Radii:', radii)
+    # print('Radial avg:', radial_avg)
+    dominant_freq_index = np.argmax(radial_avg)
+    print(dominant_freq_index)
+    dom_freq = radii[dominant_freq_index]
+    print(dom_freq)
+
+    speckle_size = 1 / dom_freq
+    print('Speckle size:', speckle_size)
+    
+    plt.plot(radii, radial_avg)
+    plt.xlabel('Spation Frequency')
+    plt.ylabel('Amplitude')
+    plt.show()
+
+    plt.imshow(np.log(magnitude_spectrum + 1), cmap='gray')
+    plt.colorbar()
     plt.show()
 
 
