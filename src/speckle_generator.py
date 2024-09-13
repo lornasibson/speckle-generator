@@ -1,13 +1,13 @@
+import os
+import io
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from PIL import Image
-from matplotlib.patches import Circle
-import io
 from scipy.ndimage import gaussian_filter
-import os
 from scipy import fft
-from scipy import ndimage
+# from PIL import Image
+# from matplotlib.patches import Circle
+
 
 def even_grid():
     width = 800
@@ -20,15 +20,12 @@ def even_grid():
     x_coords, y_coords = np.meshgrid(x_values, y_values)
 
     dot_size = 100
-    #Making every marker a different size
     area = dot_area(dot_size, px)
-
 
     tot_area = width * height
     bw_ratio = (area / tot_area) * 100
     print('B/w ratio:', bw_ratio, '%')
 
-    # plt.plot(x_coords, y_coords, marker='o', color='k', linestyle='none', markersize=dot_size)
     plt.figure(figsize=(width*px, height*px))
     plt.scatter(x_coords, y_coords, dot_size, marker='o', color='k')
     plt.xticks([])
@@ -52,8 +49,6 @@ def random_speckle():
     x_number = int(width / 20)
     y_number = int(height / 20)
     px = 1/plt.rcParams['figure.dpi'] #pixel to inch conversion
-    x_values = np.linspace(0, width, x_number)
-    y_values = np.linspace(0, height, y_number) 
     
     x_coords = np.zeros((y_number, x_number))
     y_coords = np.zeros((y_number, x_number))
@@ -68,7 +63,6 @@ def random_speckle():
 
     num_values = x_number * y_number
     area = dot_area(num_values, px)
-    
 
     tot_area = width * height
     print(tot_area)
@@ -81,20 +75,6 @@ def random_speckle():
     plt.xticks([])
     plt.yticks([])
     plt.show()
-    # plt.savefig('speckle_pattern.png')
-    
-
-    # img = Image.open('speckle_pattern.png')
-    # im_data = np.array(img)
-    # h, w = im_data.shape[:2]
-    # colours, counts = np.unique(im_data.reshape(-1,3), axis=0, return_counts=1)
-    # for index, colour in enumerate(colours):
-    #     count = counts[index]
-    #     proportion = (100 * count) / (h * w)
-    #     black = np.array([0, 0, 0])
-    #     if np.array_equal(colour, black):
-    #         print(proportion)
-        #print(f"   Colour: {colour}, count: {count}, proportion: {proportion:.2f}%")
 
 def array_speckle():
     mpl.rcParams['savefig.pad_inches'] = 0
@@ -103,8 +83,6 @@ def array_speckle():
     size_y = 600
     print(size_x*px, size_y*px)
     num_dots = 600
-    proportion = 0
-    proportion_goal = 50
     radius = 10
     image = np.zeros((size_y, size_x))
     plt.figure(figsize=(size_x*px, size_y*px))
@@ -118,10 +96,7 @@ def array_speckle():
     plt.margins(0,0)
     plt.gca().xaxis.set_major_locator(plt.NullLocator())
     plt.gca().yaxis.set_major_locator(plt.NullLocator())
-    # ax.set_frame_on(False)
-    # for item in [fig, ax]:
-    #     item.patch.set_visible(False)
-    #while proportion < proportion_goal:
+
     for i in range(num_dots):
         pos_x = np.random.randint(0, size_x)
         pos_y = np.random.randint(0, size_y)
@@ -133,9 +108,6 @@ def array_speckle():
     io_buf.seek(0)
     img_arr = np.reshape(np.frombuffer(io_buf.getvalue(), dtype=np.uint8),
                         newshape=(int(fig.bbox.bounds[3]), int(fig.bbox.bounds[2]), -1))
-    # threshold = 27.5
-    # img_binary = 255 * (img_arr > threshold)
-    #img_cropped = img_binary[50:650, 50:850, :]
     io_buf.close()
     h, w = img_arr.shape[:2]
     colours, counts = np.unique(img_arr.reshape(-1,3), axis=0, return_counts=1)
@@ -171,7 +143,7 @@ def muDIC_speckle():
     proportion_goal = 50
     radius = 8
     image = np.zeros((size_y, size_x))
-    # Add circle
+
     circle = np.zeros((radius * 2, radius * 2))
     xs, ys = np.meshgrid(np.arange(2 * radius), np.arange(2* radius))
     r = ((xs - radius) ** 2 + (ys - radius) ** 2)** 0.5
@@ -241,8 +213,7 @@ def fourier_transform(image):
     magnitude_spectrum = np.abs(fft_shifted)
 
     radii, radial_avg = radial_profile(magnitude_spectrum)
-    # print('Radii:', radii)
-    # print('Radial avg:', radial_avg)
+
     dominant_freq_index = np.argmax(radial_avg)
     print(dominant_freq_index)
     dom_freq = radii[dominant_freq_index]
@@ -260,19 +231,6 @@ def fourier_transform(image):
     plt.colorbar()
     plt.show()
 
-
-
-    # fig = plt.gcf()
-    # ax = fig.gca()
-    # plt.gca().set_axis_off()
-    # plt.subplots_adjust(top = 1, bottom = 0, right = 1, left = 0, hspace = 0, wspace = 0)
-    # plt.margins(0,0)
-    # plt.gca().xaxis.set_major_locator(plt.NullLocator())
-    # plt.gca().yaxis.set_major_locator(plt.NullLocator())
-    # for i in range(num_dots):
-        
-    #     circ = plt.Circle((pos_x, pos_y), radius, color='w')
-    #     ax.add_patch(circ)
 
 
 #Main script
