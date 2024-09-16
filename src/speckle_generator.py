@@ -5,7 +5,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter
 from scipy import fft
-# from PIL import Image
+from PIL import Image
 # from matplotlib.patches import Circle
 
 # Using scatter plot
@@ -144,7 +144,7 @@ def array_speckle(size_x, size_y, radius, proportion_goal, filename, file_format
     xs, ys = np.meshgrid(np.arange(2 * radius), np.arange(2* radius))
     r = ((xs - radius) ** 2 + (ys - radius) ** 2)** 0.5
     if (circle[r < radius] == 0).all():
-        circle[r < radius] = 1
+        circle[r < radius] = 255
     else:
         circle[r < radius] = 0
     count = 0
@@ -169,33 +169,52 @@ def array_speckle(size_x, size_y, radius, proportion_goal, filename, file_format
             all_proportion = (100 * count) / (h * w)
             if colour == 0.0:
                 proportion = all_proportion
-                print(proportion)
+                # print(proportion)
         num_dots += 1
     
-    filtered = gaussian_filter(image, 0.6)
-    print(filtered.shape)
+    # filtered = gaussian_filter(image, 0.6)
+    # print(image[1])
     if white_bg == 'Yes':
-        filtered = filtered * -1 + 1
+        image = image * -1 + 1
     plt.figure(figsize=(size_x*px, size_y*px))
     plt.xticks([])
     plt.yticks([])
-    plt.imshow(filtered, cmap='grey', vmin=0, vmax=1)
+    plt.imshow(image, cmap='grey', vmin=0, vmax=1)
     os.chdir('/home/lorna/speckle-generator')
     filepath = os.getcwd()
     filename_full = filename + '.' + file_format
     plt.savefig(os.path.join(filepath, filename_full), format=file_format, bbox_inches='tight', pad_inches=0, dpi=image_res)
     plt.show()
     
-    # fourier_transform(filtered)
+    fourier_transform(image)
 
 def fourier_transform(image):
     ft = fft.fft2(image)
+    print()
+    # print(ft[1])
     fft_shifted = fft.fftshift(ft)
     magnitude_spectrum = np.abs(fft_shifted)
 
-    plt.imshow(np.log(magnitude_spectrum + 1), cmap='gray')
+    # Spatial frequency
+    freqx = fft.fftfreq(image.shape[0])
+    avg_x_freq = np.mean(freqx)
+
+    print()
+    freqy = fft.fftfreq(image.shape[1])
+    avg_y_freq = np.mean(freqy)
+
+    plt.imshow(np.log(magnitude_spectrum), cmap='gray')
     plt.colorbar()
     plt.show()
+
+def match_id_speckle():
+    img = Image.open('speckle_pattern_no_blur.tiff')
+    img.load()
+    data = np.asarray(img)
+    colours, counts = np.unique(data, return_counts=1)
+    for index, colour in enumerate(colours):
+        count = counts[index]
+        print('Colour:', colour, 'Count:', count)
 
 
 
@@ -203,11 +222,13 @@ def fourier_transform(image):
 if __name__ == '__main__':
     size_x = 800
     size_y = 600
-    radius = 5
+    radius = 8
     proportion_goal = 50
-    filename = 'speckle_pattern_rad=5'
+    filename = 'speckle_pattern_no_blur'
     file_format = 'tiff'
     white_bg = 'Yes' #Set to yes for white background with black speckles, set to 'No' for black background with white speckles
     image_res = 100
     array_speckle(size_x, size_y, radius, proportion_goal, filename, file_format, white_bg, image_res)
+    # match_id_speckle()
+
 
