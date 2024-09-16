@@ -2,6 +2,7 @@ import os
 import io
 import numpy as np
 import matplotlib as mpl
+from mpl_toolkits import mplot3d 
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter
 from scipy import fft
@@ -184,13 +185,13 @@ def array_speckle(size_x, size_y, radius, proportion_goal, filename, file_format
     filepath = os.getcwd()
     filename_full = filename + '.' + file_format
     plt.savefig(os.path.join(filepath, filename_full), format=file_format, bbox_inches='tight', pad_inches=0, dpi=image_res)
-    plt.show()
+    # plt.show()
     
     fourier_transform(image)
 
 def fourier_transform(image):
     ft = fft.fft2(image)
-    print()
+    size = ft.shape
     # print(ft[1])
     fft_shifted = fft.fftshift(ft)
     magnitude_spectrum = np.abs(fft_shifted)
@@ -203,12 +204,26 @@ def fourier_transform(image):
     freqy = fft.fftfreq(image.shape[1])
     avg_y_freq = np.mean(freqy)
 
-    plt.imshow(np.log(magnitude_spectrum), cmap='gray')
-    plt.colorbar()
+    # plt.imshow(np.log(magnitude_spectrum), cmap='gray')
+    # plt.colorbar()
+    # plt.show()
+
+    fig = plt.figure(figsize = (10,10))
+    ax = plt.axes(projection = '3d')
+    ax.grid()
+    x = np.arange(1, size[1] + 1, 1)
+    y = np.arange(1, size[0] + 1, 1)
+    X, Y = np.meshgrid(x, y)
+    ax.plot_surface(X, Y, ft)
     plt.show()
 
+    # x-dir fourier transform
+    # ft_x = fft.fft(image[0])
+    # print(np.mean(ft_x))
+
+
 def match_id_speckle():
-    img = Image.open('speckle_pattern_no_blur.tiff')
+    img = Image.open('matchid_generated_speckle.bmp')
     img.load()
     data = np.asarray(img)
     colours, counts = np.unique(data, return_counts=1)
@@ -227,7 +242,7 @@ if __name__ == '__main__':
     filename = 'speckle_pattern_no_blur'
     file_format = 'tiff'
     white_bg = 'Yes' #Set to yes for white background with black speckles, set to 'No' for black background with white speckles
-    image_res = 100
+    image_res = 25
     array_speckle(size_x, size_y, radius, proportion_goal, filename, file_format, white_bg, image_res)
     # match_id_speckle()
 
