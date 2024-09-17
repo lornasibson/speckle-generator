@@ -157,8 +157,9 @@ def array_speckle(size_x: int, size_y: int, radius:int, proportion_goal:int, fil
 
             if x_start >= 0 and x_end <= size_x and y_start >= 0 and y_end <= size_y:
                 # non_zeros = np.count_nonzero(image[y_start:y_end, x_start:x_end])
-                # if non_zeros > 0:
-                #     print('Overlapping dots not allowed')
+                # print(non_zeros)
+                # # if non_zeros > 0:
+                image[y_start:y_end, x_start:x_end] = 0
                 image[y_start:y_end, x_start:x_end] += circle
             else:
                 print(f"Skipping out-of-bounds circle at position ({pos_x}, {pos_y})")
@@ -173,7 +174,8 @@ def array_speckle(size_x: int, size_y: int, radius:int, proportion_goal:int, fil
                 # print(proportion)
         num_dots += 1
     
-    filtered = gaussian_filter(image, 0.6)
+    print(proportion)
+    filtered = gaussian_filter(image, 0.9)
     # print(image[1])
     if white_bg:
         filtered = filtered * -1 + 1
@@ -185,13 +187,14 @@ def array_speckle(size_x: int, size_y: int, radius:int, proportion_goal:int, fil
     filepath = os.getcwd()
     filename_full = filename + '.' + file_format
     plt.savefig(os.path.join(filepath, filename_full), format=file_format, bbox_inches='tight', pad_inches=0, dpi=image_res)
-    # plt.show()
+    plt.show()
     plt.close()
     
-    fourier_transform(filtered)
+    # fourier_transform(filtered)
 
 def fourier_transform(image):
-    ft = fft.fft2(image)
+    image_no_mean = image - np.mean(image)
+    ft = fft.fft2(image_no_mean)
     freqs, counts = np.unique(ft, return_counts=1)
     # for index, freq in enumerate(freqs):
     #     count = counts[index]
@@ -211,15 +214,18 @@ def fourier_transform(image):
     avg_y_freq = np.mean(freqy)
 
     # Trying to produce 2D plot of 1 line of array
-    y = image[15]
-    FFT = abs(fft.fft(y))
+    y = image_no_mean[200]
+    FFT = np.abs(fft.fft(y))
+    print(FFT)
     freqs = fft.fftfreq(y.size)
     plt.plot(freqs, FFT)
     plt.show()
     # Peak of coefficients
-    idx = np.argmax(np.abs(FFT))
+    idx = np.argmax(FFT)
     freq = freqs[idx]
     print(freq)
+    size = 1/freq
+    print('Speckle size:', size)
 
 
     # plt.imshow(np.log(magnitude_spectrum), cmap='gray')
@@ -247,11 +253,11 @@ def match_id_speckle():
 
 #Main script
 if __name__ == '__main__':
-    size_x = 1000
-    size_y = 1000
-    radius = 10
+    size_x = 2000
+    size_y = 2000
+    radius = 15
     proportion_goal = 50
-    filename = 'speckle_pattern_no_blur'
+    filename = 'speckle_pattern_no_overlap'
     file_format = 'tiff'
     white_bg = True #Set to True for white background with black speckles, set to False for black background with white speckles
     image_res = 100
