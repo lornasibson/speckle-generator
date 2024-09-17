@@ -133,7 +133,7 @@ def circle_speckle():
     plt.show()
 
 # Using a 2D array
-def array_speckle(size_x, size_y, radius, proportion_goal, filename, file_format, white_bg, image_res):
+def array_speckle(size_x: int, size_y: int, radius:int, proportion_goal:int, filename: str, file_format: str, white_bg: bool, image_res: int):
     mpl.rcParams['savefig.pad_inches'] = 0
     px = 1/plt.rcParams['figure.dpi'] #pixel to inch conversion
     num_dots = 50
@@ -173,21 +173,21 @@ def array_speckle(size_x, size_y, radius, proportion_goal, filename, file_format
                 # print(proportion)
         num_dots += 1
     
-    # filtered = gaussian_filter(image, 0.6)
+    filtered = gaussian_filter(image, 0.6)
     # print(image[1])
-    if white_bg == 'Yes':
-        image = image * -1 + 1
+    if white_bg:
+        filtered = filtered * -1 + 1
     plt.figure(figsize=(size_x*px, size_y*px))
     plt.xticks([])
     plt.yticks([])
-    plt.imshow(image, cmap='grey', vmin=0, vmax=1)
+    plt.imshow(filtered, cmap='grey', vmin=0, vmax=1)
     os.chdir('/home/lorna/speckle-generator')
     filepath = os.getcwd()
     filename_full = filename + '.' + file_format
     plt.savefig(os.path.join(filepath, filename_full), format=file_format, bbox_inches='tight', pad_inches=0, dpi=image_res)
     # plt.show()
     
-    fourier_transform(image)
+    fourier_transform(filtered)
 
 def fourier_transform(image):
     ft = fft.fft2(image)
@@ -235,13 +235,13 @@ def match_id_speckle():
 
 #Main script
 if __name__ == '__main__':
-    size_x = 800
-    size_y = 600
-    radius = 8
+    size_x = 2000
+    size_y = 2000
+    radius = 20
     proportion_goal = 50
     filename = 'speckle_pattern_no_blur'
     file_format = 'tiff'
-    white_bg = 'Yes' #Set to yes for white background with black speckles, set to 'No' for black background with white speckles
+    white_bg = True #Set to True for white background with black speckles, set to False for black background with white speckles
     image_res = 25
     array_speckle(size_x, size_y, radius, proportion_goal, filename, file_format, white_bg, image_res)
     # match_id_speckle()
