@@ -144,10 +144,7 @@ def array_speckle(size_x: int, size_y: int, radius:int, proportion_goal:int, fil
     circle = np.zeros((radius * 2, radius * 2))
     xs, ys = np.meshgrid(np.arange(2 * radius), np.arange(2* radius))
     r = ((xs - radius) ** 2 + (ys - radius) ** 2)** 0.5
-    if (circle[r < radius] == 0).all():
-        circle[r < radius] = 255
-    else:
-        circle[r < radius] = 0
+    circle[r < radius] = 255
     count = 0
     
     while proportion > proportion_goal:
@@ -159,6 +156,9 @@ def array_speckle(size_x: int, size_y: int, radius:int, proportion_goal:int, fil
             y_start, y_end = pos_y - radius, pos_y + radius
 
             if x_start >= 0 and x_end <= size_x and y_start >= 0 and y_end <= size_y:
+                # non_zeros = np.count_nonzero(image[y_start:y_end, x_start:x_end])
+                # if non_zeros > 0:
+                #     print('Overlapping dots not allowed')
                 image[y_start:y_end, x_start:x_end] += circle
             else:
                 print(f"Skipping out-of-bounds circle at position ({pos_x}, {pos_y})")
@@ -186,13 +186,19 @@ def array_speckle(size_x: int, size_y: int, radius:int, proportion_goal:int, fil
     filename_full = filename + '.' + file_format
     plt.savefig(os.path.join(filepath, filename_full), format=file_format, bbox_inches='tight', pad_inches=0, dpi=image_res)
     # plt.show()
+    plt.close()
     
     fourier_transform(filtered)
 
 def fourier_transform(image):
     ft = fft.fft2(image)
-    size = ft.shape
-    # print(ft[1])
+    freqs, counts = np.unique(ft, return_counts=1)
+    # for index, freq in enumerate(freqs):
+    #     count = counts[index]
+    #     print('Freq:', freq, 'Count:', count)
+    for index, freq in enumerate(freqs):
+        freq = np.round(freq.real)
+        freqs[index] = freq
     fft_shifted = fft.fftshift(ft)
     magnitude_spectrum = np.abs(fft_shifted)
 
@@ -204,23 +210,29 @@ def fourier_transform(image):
     freqy = fft.fftfreq(image.shape[1])
     avg_y_freq = np.mean(freqy)
 
+    # Trying to produce 2D plot of 1 line of array
+    y = image[15]
+    FFT = abs(fft.fft(y))
+    freqs = fft.fftfreq(y.size)
+    plt.plot(freqs, FFT)
+    plt.show()
+    # Peak of coefficients
+    idx = np.argmax(np.abs(FFT))
+    freq = freqs[idx]
+    print(freq)
+
+
     # plt.imshow(np.log(magnitude_spectrum), cmap='gray')
     # plt.colorbar()
     # plt.show()
 
-    fig = plt.figure(figsize = (10,10))
-    ax = plt.axes(projection = '3d')
-    ax.grid()
-    x = np.arange(1, size[1] + 1, 1)
-    y = np.arange(1, size[0] + 1, 1)
-    X, Y = np.meshgrid(x, y)
-    ax.plot_surface(X, Y, ft)
-    plt.show()
-
-    # x-dir fourier transform
-    # ft_x = fft.fft(image[0])
-    # print(np.mean(ft_x))
-
+    # fig = plt.figure(figsize = (10,10))
+    # ax = plt.axes(projection = '3d')
+    # ax.grid()
+    # x = np.arange(1, size[1] + 1, 1)
+    # y = np.arange(1, size[0] + 1, 1)
+    # X, Y = np.meshgrid(x, y)
+    # ax.plot_surface(X, Y, ft)
 
 def match_id_speckle():
     img = Image.open('matchid_generated_speckle.bmp')
@@ -235,14 +247,14 @@ def match_id_speckle():
 
 #Main script
 if __name__ == '__main__':
-    size_x = 2000
-    size_y = 2000
-    radius = 20
+    size_x = 1000
+    size_y = 1000
+    radius = 10
     proportion_goal = 50
     filename = 'speckle_pattern_no_blur'
     file_format = 'tiff'
     white_bg = True #Set to True for white background with black speckles, set to False for black background with white speckles
-    image_res = 25
+    image_res = 100
     array_speckle(size_x, size_y, radius, proportion_goal, filename, file_format, white_bg, image_res)
     # match_id_speckle()
 
