@@ -249,19 +249,38 @@ def match_id_speckle():
         count = counts[index]
         print('Colour:', colour, 'Count:', count)
 
+def optimum_radius():
+    sod = 300
+    focal_length = 25
+    resolution_x = 2464
+    pixel_size_micron = 3.45
+    pixel_size = pixel_size_micron / 100
+    FOV_x = ((sod - focal_length)/focal_length) * pixel_size * resolution_x
+    length_calib = FOV_x / resolution_x
+    px_per_speckle = 5
+    opt_speckle_size = length_calib * px_per_speckle
+    print(opt_speckle_size, 'mm')
+
+    px = 1/plt.rcParams['figure.dpi'] #pixel to inch conversion
+    px_mm =    px / 0.039370
+
+    opt_radius = opt_speckle_size / px_mm
+    print(opt_radius, 'px')
+    # Unsure if it is actually optimum radius
+
 
 
 #Main script
 if __name__ == '__main__':
     size_x = 2000
     size_y = 2000
-    radius = 15
+    radius = 10
     proportion_goal = 50
-    filename = 'speckle_pattern_no_overlap'
+    filename = 'speckle_pattern_opt_radius'
     file_format = 'tiff'
     white_bg = True #Set to True for white background with black speckles, set to False for black background with white speckles
     image_res = 100
     array_speckle(size_x, size_y, radius, proportion_goal, filename, file_format, white_bg, image_res)
     # match_id_speckle()
-
+    # optimum_radius()
 
