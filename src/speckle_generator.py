@@ -120,13 +120,6 @@ def circle_speckle():
         if all_proportion > 10:
             print("Colour: ", colour, "Count: ", count, "Proportion: ", all_proportion)
         total_prop += all_proportion
-        # white = np.array([255, 255, 255])
-        # black = np.array([0, 0, 0])
-        # if np.array_equal(colour, white):
-        #     proportion = all_proportion
-        #     print('White proportion: ', proportion)
-        # elif np.array_equal(colour, black):
-        #     print('Black proportion:', all_proportion)
 
     plt.savefig('speckle_pattern_2', bbox_inches='tight', pad_inches=0)
     print(total_prop)
@@ -156,9 +149,6 @@ def array_speckle(size_x: int, size_y: int, radius:int, proportion_goal:int, fil
             y_start, y_end = pos_y - radius, pos_y + radius
 
             if x_start >= 0 and x_end <= size_x and y_start >= 0 and y_end <= size_y:
-                # non_zeros = np.count_nonzero(image[y_start:y_end, x_start:x_end])
-                # print(non_zeros)
-                # # if non_zeros > 0:
                 image[y_start:y_end, x_start:x_end] = 0
                 image[y_start:y_end, x_start:x_end] += circle
             else:
@@ -171,12 +161,10 @@ def array_speckle(size_x: int, size_y: int, radius:int, proportion_goal:int, fil
             all_proportion = (100 * count) / (h * w)
             if colour == 0.0:
                 proportion = all_proportion
-                # print(proportion)
         num_dots += 1
     
     print(proportion)
     filtered = gaussian_filter(image, 0.9)
-    # print(image[1])
     if white_bg:
         filtered = filtered * -1 + 1
     plt.figure(figsize=(size_x*px, size_y*px))
@@ -196,22 +184,17 @@ def fourier_transform(image):
     image_no_mean = image - np.mean(image)
     ft = fft.fft2(image_no_mean)
     freqs, counts = np.unique(ft, return_counts=1)
-    # for index, freq in enumerate(freqs):
-    #     count = counts[index]
-    #     print('Freq:', freq, 'Count:', count)
     for index, freq in enumerate(freqs):
         freq = np.round(freq.real)
         freqs[index] = freq
-    fft_shifted = fft.fftshift(ft)
-    magnitude_spectrum = np.abs(fft_shifted)
+    # fft_shifted = fft.fftshift(ft)
+    # magnitude_spectrum = np.abs(fft_shifted)
 
-    # Spatial frequency
-    freqx = fft.fftfreq(image.shape[0])
-    avg_x_freq = np.mean(freqx)
-
-    print()
-    freqy = fft.fftfreq(image.shape[1])
-    avg_y_freq = np.mean(freqy)
+    # # Spatial frequency
+    # freqx = fft.fftfreq(image.shape[0])
+    # avg_x_freq = np.mean(freqx)
+    # freqy = fft.fftfreq(image.shape[1])
+    # avg_y_freq = np.mean(freqy)
 
     # Trying to produce 2D plot of 1 line of array
     y = image_no_mean[200]
