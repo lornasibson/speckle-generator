@@ -174,11 +174,11 @@ def array_speckle(size_x: int, size_y: int, radius:int, proportion_goal:int, fil
     os.chdir('/home/lorna/speckle-generator')
     filepath = os.getcwd()
     filename_full = filename + '.' + file_format
-    plt.savefig(os.path.join(filepath, filename_full), format=file_format, bbox_inches='tight', pad_inches=0, dpi=image_res)
-    plt.show()
+    # plt.savefig(os.path.join(filepath, filename_full), format=file_format, bbox_inches='tight', pad_inches=0, dpi=image_res)
+    # plt.show()
     plt.close()
     
-    # fourier_transform(filtered)
+    fourier_transform(filtered)
 
 def fourier_transform(image):
     image_no_mean = image - np.mean(image)
@@ -190,16 +190,9 @@ def fourier_transform(image):
     # fft_shifted = fft.fftshift(ft)
     # magnitude_spectrum = np.abs(fft_shifted)
 
-    # # Spatial frequency
-    # freqx = fft.fftfreq(image.shape[0])
-    # avg_x_freq = np.mean(freqx)
-    # freqy = fft.fftfreq(image.shape[1])
-    # avg_y_freq = np.mean(freqy)
-
     # Trying to produce 2D plot of 1 line of array
     y = image_no_mean[200]
     FFT = np.abs(fft.fft(y))
-    print(FFT)
     freqs = fft.fftfreq(y.size)
     plt.plot(freqs, FFT)
     plt.show()
@@ -253,10 +246,10 @@ def optimum_radius():
 
 
 
-#Main script
+# Main script
 if __name__ == '__main__':
-    size_x = 2000
-    size_y = 2000
+    size_x = 1000
+    size_y = 1000
     radius = 10
     proportion_goal = 50
     filename = 'speckle_pattern_opt_radius'
