@@ -4,6 +4,19 @@ import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter
 
 class Speckle:
+    '''
+    A class to generate, show and save a speckle pattern subject to input parameters
+        Parameters:
+            size_x (int): An integer value of the horizontal size of speckle image in pixels
+            size_y (int): An integer value of the vertical size of speckle image in pixels
+            radius (int): An integer value of the radius of circles used in the speckle pattern
+            proportion_goal (int): An integer value of the desired black/white balance as a percentage
+            filename (str): A string of the filename the image should be saved as
+            file_format (str): A string of the desired file format of the saved file
+            directory (str): A string of the directory where the image file should be saved
+            white_bg (bool): A Boolean value for whether a white or black background is wanted
+            image_res (int): An integer value of the desired image resolution in dpi
+            '''
     def __init__(self, size_x:int, size_y:int, radius:int, proportion_goal:int, filename: str, file_format: str, directory: str, white_bg: bool, image_res: int):
         self.size_x = size_x
         self.size_y = size_y
@@ -17,6 +30,9 @@ class Speckle:
         self.px = 1/plt.rcParams['figure.dpi']
    
     def generate_speckle(self):
+        '''
+        Creates, displays and saves a dotted speckle pattern of specified size and black/white balance
+        '''
         num_dots = 50
         proportion = 100
         
@@ -40,7 +56,7 @@ class Speckle:
         
         Speckle.plot_image(self, filtered)
 
-    def add_circle(self, image, circle):
+    def add_circle(self, image: np.ndarray, circle: np.ndarray) -> np.ndarray:
         '''
         Defines a random point and (unless it is out-of-bounds) adds a circle to the image array array at that position
             Parameters:
@@ -62,7 +78,7 @@ class Speckle:
             print(f"Skipping out-of-bounds circle at position ({pos_x}, {pos_y})")
         return image
     
-    def colour_count(self, image, proportion: float) -> float: 
+    def colour_count(self, image: np.ndarray, proportion: float) -> float:
         '''
         Return proportion of black pixels (with value 0) in image array as a percentage
             Parameters:
@@ -80,7 +96,7 @@ class Speckle:
                 proportion = all_proportion
         return proportion
 
-    def plot_image(self, image):
+    def plot_image(self, image: np.ndarray):
         '''
         Defines figure size and formatting (no axes), plots the image array in greyscale and saves that figure to the specified filename in the specified location
             Parameters:
