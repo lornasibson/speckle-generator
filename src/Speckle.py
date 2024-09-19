@@ -16,7 +16,7 @@ class Speckle:
             directory (str): A string of the directory where the image file should be saved
             white_bg (bool): A Boolean value for whether a white or black background is wanted
             image_res (int): An integer value of the desired image resolution in dpi
-            '''
+    '''
     def __init__(self, size_x:int, size_y:int, radius:int, proportion_goal:int, filename: str, file_format: str, directory: str, white_bg: bool, image_res: int):
         self.size_x = size_x
         self.size_y = size_y
@@ -64,7 +64,7 @@ class Speckle:
                 circle (array): A 2D array the size of the radius, containing a central circle of values of 255
             Returns:
                 image (array): The image array with the circle added
-            '''
+        '''
         pos_x = np.random.randint(self.radius, (self.size_x - self.radius))
         pos_y = np.random.randint(self.radius, (self.size_y - self.radius))
     
