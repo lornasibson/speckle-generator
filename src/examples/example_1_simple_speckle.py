@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, '/home/lorna/speckle_generator/src/speckle_gen')
+sys.path.insert(0, '/home/lorna/speckle_generator/src/speckle')
 from speckle import Speckle
 
 if __name__ == '__main__':
