@@ -162,7 +162,7 @@ def array_speckle(size_x: int, size_y: int, radius:int, proportion_goal:int, fil
             if colour == 0.0:
                 proportion = all_proportion
         num_dots += 1
-    
+
     print(proportion)
     filtered = gaussian_filter(image, 0.9)
     if white_bg:
@@ -175,18 +175,18 @@ def array_speckle(size_x: int, size_y: int, radius:int, proportion_goal:int, fil
     filepath = os.getcwd()
     filename_full = filename + '.' + file_format
     # plt.savefig(os.path.join(filepath, filename_full), format=file_format, bbox_inches='tight', pad_inches=0, dpi=image_res)
-    # plt.show()
+    plt.show()
     plt.close()
     
     fourier_transform(filtered)
 
 def fourier_transform(image):
     image_no_mean = image - np.mean(image)
-    ft = fft.fft2(image_no_mean)
-    freqs, counts = np.unique(ft, return_counts=1)
-    for index, freq in enumerate(freqs):
-        freq = np.round(freq.real)
-        freqs[index] = freq
+    # ft = fft.fft2(image_no_mean)
+    # freqs, counts = np.unique(ft, return_counts=1)
+    # for index, freq in enumerate(freqs):
+    #     freq = np.round(freq.real)
+    #     freqs[index] = freq
     # fft_shifted = fft.fftshift(ft)
     # magnitude_spectrum = np.abs(fft_shifted)
 
