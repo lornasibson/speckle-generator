@@ -49,7 +49,7 @@ class Speckle:
                 image = Speckle.add_circle(self, image, circle)
             proportion = Speckle.colour_count(self, image, proportion)
             num_dots += 1
-        
+        print(proportion)
         filtered = gaussian_filter(image, 0.9)
         if self.white_bg:
             filtered = filtered * -1 + 1
