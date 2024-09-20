@@ -112,5 +112,4 @@ class Speckle:
         plt.savefig(os.path.join(filepath, filename_full), format=self.file_format, bbox_inches='tight', pad_inches=0, dpi=self.image_res)
         plt.show()
         plt.close()
-
-    
+        
