@@ -1,9 +1,11 @@
+import sys
+sys.path.insert(0, '/home/lorna/speckle_generator/src/speckle_gen')
 from speckle import Speckle
 
 if __name__ == '__main__':
     size_x = 1000
     size_y = 1000
-    radius = 8
+    radius = 10
     proportion_goal = 50
     filename = 'speckle_pattern_opt_radius'
     file_format = 'tiff'
