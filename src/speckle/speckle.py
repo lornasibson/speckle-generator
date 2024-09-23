@@ -52,7 +52,7 @@ class Speckle:
                 image = np.zeros((self.size_y, self.size_x))
             else:
                 break
-            num_dots += 20
+            num_dots += 30
         print(proportion)
         filtered = gaussian_filter(image, 0.9)
         if self.white_bg:
@@ -62,7 +62,7 @@ class Speckle:
 
     def add_circle(self, image: np.ndarray, circle: np.ndarray) -> np.ndarray:
         '''
-        Defines a random point and (unless it is out-of-bounds) adds a circle to the image array array at that position
+        Defines a random point and (unless it is out-of-bounds) adds a circle to the image array at that position
             Parameters:
                 image (array): A 2D image array of specified size
                 circle (array): A 2D array the size of the radius, containing a central circle of values of 255
