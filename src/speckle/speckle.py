@@ -48,7 +48,11 @@ class Speckle:
             for i in range(num_dots):
                 image = Speckle.add_circle(self, image, circle)
             proportion = Speckle.colour_count(self, image, proportion)
-            num_dots += 1
+            if proportion > self.proportion_goal:
+                image = np.zeros((self.size_y, self.size_x))
+            else:
+                break
+            num_dots += 20
         print(proportion)
         filtered = gaussian_filter(image, 0.9)
         if self.white_bg:
