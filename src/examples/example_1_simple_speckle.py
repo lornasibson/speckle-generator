@@ -17,13 +17,13 @@ def main() -> None:
     size_y = 1000
     radius = 10
     proportion_goal = 50
-    filename = 'speckle_pattern_opt_radius'
+    filename = 'speckle_pattern_set0'
     file_format = 'tiff'
     directory = '/home/lorna/speckle_generator'
     white_bg = True #Set to True for white background with black speckles, set to False for black background with white speckles
     image_res = 100
     speckle = Speckle(size_x, size_y, radius, proportion_goal, filename, file_format, directory, white_bg, image_res)
-    speckle.generate_speckle() 
+    speckle.generate_speckle()
 
 if __name__ == '__main__':
     main()
