@@ -115,19 +115,29 @@ class Speckle:
                 proportion = all_proportion
         return proportion
 
-    def plot_image(self, image: np.ndarray):
-        '''
-        Defines figure size and formatting (no axes), plots the image array in greyscale and saves that figure to the specified filename in the specified location
-            Parameters:
-                image (arrray): A 2D array to be plotted
-        '''
-        plt.figure(figsize=((self.speckle_data.size_x * self.px), (self.speckle_data.size_y  * self.px)))
-        plt.xticks([])
-        plt.yticks([])
-        plt.imshow(image, cmap='grey', vmin=0, vmax=1)
-        os.chdir(self.directory)
-        filepath = os.getcwd()
-        filename_full = self.filename + '.' + self.file_format
-        plt.savefig(os.path.join(filepath, filename_full), format=self.file_format, bbox_inches='tight', pad_inches=0, dpi=self.speckle_data.image_res)
-        plt.show()
-        plt.close()
+def show_image(self, image: np.ndarray):
+    '''
+    Defines figure size and formatting (no axes) and plots the image array in greyscale
+        Parameters:
+            image (arrray): A 2D array to be plotted
+    '''
+    plt.figure(figsize=((self.speckle_data.size_x * self.px), (self.speckle_data.size_y  * self.px)))
+    plt.xticks([])
+    plt.yticks([])
+    plt.imshow(image, cmap='grey', vmin=0, vmax=1)
+    plt.show()
+    plt.close()
+
+def save_image(self, image: np.ndarray) -> None:
+    '''
+    Saves image to specified filename and location
+        Parameters:
+            image (arrray): A 2D array to be plotted
+    '''
+    os.chdir(self.directory)
+    filepath = Path.cwd()
+    filename_full = self.filename + '.' + self.file_format
+    plt.figure(figsize=((self.speckle_data.size_x * self.px), (self.speckle_data.size_y  * self.px)))
+    plt.imshow(image, cmap='grey', vmin=0, vmax=1)
+    plt.savefig(Path.joinpath(filepath, filename_full), format=self.file_format, bbox_inches='tight', pad_inches=0, dpi=self.speckle_data.image_res)
+    plt.close()
