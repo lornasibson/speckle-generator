@@ -16,9 +16,9 @@ def main() -> None:
     directory = Path.cwd() / "images"
     speckle_data = SpeckleData()
     speckle = Speckle(speckle_data)
-    image = speckle.generate_speckle()
-    show_image(image)
-    save_image(image, directory, filename)
+    speckle.make_speckle()
+    # show_image(image)
+    # save_image(image, directory, filename)
 
 if __name__ == '__main__':
     main()
