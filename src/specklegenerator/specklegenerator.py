@@ -36,14 +36,7 @@ class Speckle:
             image_res (int): An integer value of the desired image resolution in dpi
     '''
     def __init__(self,
-                 filename: str,
-                 file_format: str,
-                 directory: Path,
                  speckle_data: SpeckleData) -> None:
-
-        self.filename = filename
-        self.file_format = file_format
-        self.directory = directory
         self.speckle_data = speckle_data
 
 
@@ -75,8 +68,6 @@ class Speckle:
         filtered = gaussian_filter(image, 0.9)
         if self.speckle_data.white_bg:
             filtered = filtered * -1 + 1
-
-
 
         return filtered
 
@@ -120,31 +111,31 @@ class Speckle:
                 proportion = all_proportion
         return proportion
 
-def show_image(self, image: np.ndarray):
+def show_image(image: np.ndarray):
     '''
     Defines figure size and formatting (no axes) and plots the image array in greyscale
         Parameters:
             image (arrray): A 2D array to be plotted
     '''
     px = 1/plt.rcParams['figure.dpi']
-    plt.figure(figsize=((self.speckle_data.size_x * px), (self.speckle_data.size_y  * px)))
+    plt.figure(figsize=((SpeckleData.size_x * px), (SpeckleData.size_y  * px)))
     plt.xticks([])
     plt.yticks([])
     plt.imshow(image, cmap='grey', vmin=0, vmax=1)
     plt.show()
     plt.close()
 
-def save_image(self, image: np.ndarray) -> None:
+def save_image(image: np.ndarray, directory: Path, filename: str) -> None:
     '''
     Saves image to specified filename and location
         Parameters:
             image (arrray): A 2D array to be plotted
     '''
-    os.chdir(self.directory)
+    os.chdir(directory)
     filepath = Path.cwd()
-    filename_full = self.filename + '.' + self.file_format
+    filename_full = filename + '.' + SpeckleData.file_format
     px = 1/plt.rcParams['figure.dpi']
-    plt.figure(figsize=((self.speckle_data.size_x * px), (self.speckle_data.size_y  * px)))
+    plt.figure(figsize=((SpeckleData.size_x * px), (SpeckleData.size_y  * px)))
     plt.imshow(image, cmap='grey', vmin=0, vmax=1)
-    plt.savefig(Path.joinpath(filepath, filename_full), format=self.file_format, bbox_inches='tight', pad_inches=0, dpi=self.speckle_data.image_res)
+    plt.savefig(Path.joinpath(filepath, filename_full), format=SpeckleData.file_format, bbox_inches='tight', pad_inches=0, dpi=SpeckleData.image_res)
     plt.close()
