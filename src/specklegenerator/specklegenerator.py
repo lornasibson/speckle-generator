@@ -12,13 +12,14 @@ class FileFormat(Enum):
 
 @dataclass
 class SpeckleData:
-    size_x: int = 1000
-    size_y:int = 1000
-    radius:int = 10
-    proportion_goal:float = 50.0
+    size_x: int = 20
+    size_y:int = 20
+    radius:int = 2
+    proportion_goal:float = 0.5
     white_bg:bool = True
     image_res:int = 300
     file_format:FileFormat = FileFormat.TIFF.value
+    gauss_blur: float = 0.9
 
 
 class Speckle:
@@ -29,15 +30,44 @@ class Speckle:
             size_y (int): An integer value of the vertical size of speckle image in pixels
             radius (int): An integer value of the radius of circles used in the speckle pattern
             proportion_goal (int): An integer value of the desired black/white balance as a percentage
-            filename (str): A string of the filename the image should be saved as
             file_format (str): A string of the desired file format of the saved file
-            directory (str): A string of the directory where the image file should be saved
             white_bg (bool): A Boolean value for whether a white or black background is wanted
             image_res (int): An integer value of the desired image resolution in dpi
     '''
     def __init__(self,
                  speckle_data: SpeckleData) -> None:
         self.speckle_data = speckle_data
+
+    def make_speckle(self) ->np.ndarray:
+        number_dots = ((self.speckle_data.proportion_goal * self.speckle_data.size_x * self.speckle_data.size_y)
+                       / (np.pi * self.speckle_data.radius**2))
+        x_y_ratio = self.speckle_data.size_x / self.speckle_data.size_y
+        num_dots_y = np.sqrt(number_dots / x_y_ratio)
+        num_dots_x = number_dots / num_dots_y
+        num_dots_y = int(np.round(num_dots_y))
+        num_dots_x = int(np.round(num_dots_x))
+        n_tot = num_dots_x * num_dots_y
+        b_w_ratio = ((np.pi * self.speckle_data.radius**2 * n_tot) /
+                     (self.speckle_data.size_x * self.speckle_data.size_y))
+        # print(b_w_ratio)
+
+        dot_centre_x = np.linspace(0, self.speckle_data.size_x, num=(num_dots_x + 2))
+        dot_centre_x = dot_centre_x[1:-1]
+        dot_centre_y = np.linspace(0, self.speckle_data.size_y, num=(num_dots_y + 2))
+        dot_centre_y = dot_centre_y[1:-1]
+
+        dot_x, dot_y = np.meshgrid(dot_centre_x, dot_centre_y)
+
+        px_centre_x = np.linspace(0.5, (self.speckle_data.size_x - 0.5),
+                                   num=self.speckle_data.size_x)
+        px_centre_y = np.linspace(0.5, (self.speckle_data.size_y - 0.5),
+                                   num=self.speckle_data.size_y)
+        px_x, px_y = np.meshgrid(px_centre_x, px_centre_y)
+
+
+
+
+
 
 
     def generate_speckle(self) -> np.ndarray:
@@ -58,14 +88,15 @@ class Speckle:
         while proportion > self.speckle_data.proportion_goal:
             for i in range(num_dots):
                 image = Speckle._add_circle(self, image, circle)
-            proportion = Speckle.colour_count(self, image, proportion)
+            proportion = Speckle._colour_count(self, image, proportion)
             if proportion > self.speckle_data.proportion_goal:
                 image = np.zeros((self.speckle_data.size_y, self.speckle_data.size_x))
             else:
                 break
             num_dots += 30
+            print([proportion])
         print(proportion)
-        filtered = gaussian_filter(image, 0.9)
+        filtered = gaussian_filter(image, self.speckle_data.gauss_blur)
         if self.speckle_data.white_bg:
             filtered = filtered * -1 + 1
 
@@ -93,7 +124,7 @@ class Speckle:
             print(f"Skipping out-of-bounds circle at position ({pos_x}, {pos_y})")
         return image
 
-    def colour_count(self, image: np.ndarray, proportion: float) -> float:
+    def _colour_count(self, image: np.ndarray, proportion: float) -> float:
         '''
         Return proportion of black pixels (with value 0) in image array as a percentage
             Parameters:
@@ -131,14 +162,11 @@ def save_image(image: np.ndarray, directory: Path, filename: str) -> None:
         Parameters:
             image (arrray): A 2D array to be plotted
     '''
-    os.chdir(directory)
-    filepath = Path.cwd()
     filename_full = filename + '.' + SpeckleData.file_format
-    print(Path.joinpath(filepath, filename_full))
     px = 1/plt.rcParams['figure.dpi']
     plt.figure(figsize=((SpeckleData.size_x * px), (SpeckleData.size_y  * px)))
     plt.xticks([])
     plt.yticks([])
     plt.imshow(image, cmap='grey', vmin=0, vmax=1)
-    plt.savefig(Path.joinpath(filepath, filename_full), format=SpeckleData.file_format, bbox_inches='tight', pad_inches=0, dpi=SpeckleData.image_res)
+    plt.savefig(Path.joinpath(directory, filename_full), format=SpeckleData.file_format, bbox_inches='tight', pad_inches=0, dpi=SpeckleData.image_res)
     plt.close()
