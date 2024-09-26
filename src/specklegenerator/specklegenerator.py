@@ -14,7 +14,7 @@ class FileFormat(Enum):
 class SpeckleData:
     size_x: int = 1000
     size_y:int = 1000
-    radius:int = 5
+    radius:int = 10
     proportion_goal:float = 50.0
     white_bg:bool = True
     image_res:int = 300
@@ -134,8 +134,11 @@ def save_image(image: np.ndarray, directory: Path, filename: str) -> None:
     os.chdir(directory)
     filepath = Path.cwd()
     filename_full = filename + '.' + SpeckleData.file_format
+    print(Path.joinpath(filepath, filename_full))
     px = 1/plt.rcParams['figure.dpi']
     plt.figure(figsize=((SpeckleData.size_x * px), (SpeckleData.size_y  * px)))
+    plt.xticks([])
+    plt.yticks([])
     plt.imshow(image, cmap='grey', vmin=0, vmax=1)
     plt.savefig(Path.joinpath(filepath, filename_full), format=SpeckleData.file_format, bbox_inches='tight', pad_inches=0, dpi=SpeckleData.image_res)
     plt.close()
