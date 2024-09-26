@@ -12,7 +12,7 @@ def main() -> None:
     - Image displayed on screen
     - Image saved to specifed filename in specified location
     '''
-    filename = 'speckle_pattern_set0'
+    filename = 'speckle_pattern_set1'
     directory = Path.cwd() / "images"
     speckle_data = SpeckleData()
     speckle = Speckle(speckle_data)

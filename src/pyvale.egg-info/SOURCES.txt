@@ -1,0 +1,11 @@
+LICENSE
+README.md
+pyproject.toml
+src/examples/example_1_simple_speckle.py
+src/pyvale.egg-info/PKG-INFO
+src/pyvale.egg-info/SOURCES.txt
+src/pyvale.egg-info/dependency_links.txt
+src/pyvale.egg-info/requires.txt
+src/pyvale.egg-info/top_level.txt
+src/specklegenerator/__init__.py
+src/specklegenerator/specklegenerator.py
