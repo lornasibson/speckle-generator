@@ -1,9 +1,14 @@
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from enum import Enum
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter
+
+class FileFormat(Enum):
+    TIFF = 'tiff'
+    BITMAP = 'raw'
 
 @dataclass
 class SpeckleData:
@@ -13,6 +18,7 @@ class SpeckleData:
     proportion_goal:float = 50.0
     white_bg:bool = True
     image_res:int = 300
+    file_format:FileFormat = FileFormat.TIFF.value
 
 
 class Speckle:
@@ -40,7 +46,6 @@ class Speckle:
         self.directory = directory
         self.speckle_data = speckle_data
 
-        self.px = 1/plt.rcParams['figure.dpi']
 
     def generate_speckle(self) -> np.ndarray:
         '''
@@ -71,7 +76,7 @@ class Speckle:
         if self.speckle_data.white_bg:
             filtered = filtered * -1 + 1
 
-        Speckle.plot_image(self, filtered)
+
 
         return filtered
 
@@ -121,7 +126,8 @@ def show_image(self, image: np.ndarray):
         Parameters:
             image (arrray): A 2D array to be plotted
     '''
-    plt.figure(figsize=((self.speckle_data.size_x * self.px), (self.speckle_data.size_y  * self.px)))
+    px = 1/plt.rcParams['figure.dpi']
+    plt.figure(figsize=((self.speckle_data.size_x * px), (self.speckle_data.size_y  * px)))
     plt.xticks([])
     plt.yticks([])
     plt.imshow(image, cmap='grey', vmin=0, vmax=1)
@@ -137,7 +143,8 @@ def save_image(self, image: np.ndarray) -> None:
     os.chdir(self.directory)
     filepath = Path.cwd()
     filename_full = self.filename + '.' + self.file_format
-    plt.figure(figsize=((self.speckle_data.size_x * self.px), (self.speckle_data.size_y  * self.px)))
+    px = 1/plt.rcParams['figure.dpi']
+    plt.figure(figsize=((self.speckle_data.size_x * px), (self.speckle_data.size_y  * px)))
     plt.imshow(image, cmap='grey', vmin=0, vmax=1)
     plt.savefig(Path.joinpath(filepath, filename_full), format=self.file_format, bbox_inches='tight', pad_inches=0, dpi=self.speckle_data.image_res)
     plt.close()
