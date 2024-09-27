@@ -12,9 +12,9 @@ class FileFormat(Enum):
 
 @dataclass
 class SpeckleData:
-    size_x: int = 20
-    size_y:int = 20
-    radius:int = 2
+    size_x: int = 500
+    size_y:int = 500
+    radius:int = 20
     proportion_goal:float = 0.5
     white_bg:bool = True
     image_res:int = 300
@@ -42,27 +42,66 @@ class Speckle:
         number_dots = ((self.speckle_data.proportion_goal * self.speckle_data.size_x * self.speckle_data.size_y)
                        / (np.pi * self.speckle_data.radius**2))
         x_y_ratio = self.speckle_data.size_x / self.speckle_data.size_y
+        area = self.speckle_data.size_x * self.speckle_data.size_y
         num_dots_y = np.sqrt(number_dots / x_y_ratio)
         num_dots_x = number_dots / num_dots_y
         num_dots_y = int(np.round(num_dots_y))
         num_dots_x = int(np.round(num_dots_x))
         n_tot = num_dots_x * num_dots_y
         b_w_ratio = ((np.pi * self.speckle_data.radius**2 * n_tot) /
-                     (self.speckle_data.size_x * self.speckle_data.size_y))
+                     (area))
         # print(b_w_ratio)
 
         dot_centre_x = np.linspace(0, self.speckle_data.size_x, num=(num_dots_x + 2))
         dot_centre_x = dot_centre_x[1:-1]
         dot_centre_y = np.linspace(0, self.speckle_data.size_y, num=(num_dots_y + 2))
         dot_centre_y = dot_centre_y[1:-1]
-
         dot_x, dot_y = np.meshgrid(dot_centre_x, dot_centre_y)
+        x_dot = dot_x.flatten()
+        y_dot = dot_y.flatten()
 
         px_centre_x = np.linspace(0.5, (self.speckle_data.size_x - 0.5),
                                    num=self.speckle_data.size_x)
         px_centre_y = np.linspace(0.5, (self.speckle_data.size_y - 0.5),
                                    num=self.speckle_data.size_y)
         px_x, px_y = np.meshgrid(px_centre_x, px_centre_y)
+        x_px = px_x.flatten()
+        y_px = px_y.flatten()
+
+
+
+        image = np.zeros((self.speckle_data.size_y, self.speckle_data.size_x))
+
+        x_dot_2d = np.atleast_2d(x_dot)
+        x_px_2d = np.atleast_2d(x_px)
+        x_px_trans = np.transpose(x_px_2d)
+        x_px_same_dim = np.repeat(x_px_trans, n_tot, axis=1)
+        x_dot_same_dim = np.repeat(x_dot_2d, area, axis=0)
+
+        y_dot_2d = np.atleast_2d(y_dot)
+        y_px_2d = np.atleast_2d(y_px)
+        y_px_trans = np.transpose(y_px_2d)
+        y_px_same_dim = np.repeat(y_px_trans, n_tot, axis=1)
+        y_dot_same_dim = np.repeat(y_dot_2d, area, axis=0)
+
+        d = np.sqrt((x_dot_same_dim - x_px_same_dim)**2 + (y_dot_same_dim - y_px_same_dim)**2)
+
+
+        # image[d < self.speckle_dsata.radius] = 1
+
+        d_split = np.split(d, n_tot, axis=1)
+
+        for i in range(n_tot):
+            dot = d_split[i].reshape((self.speckle_data.size_y, self.speckle_data.size_x))
+            image[dot < self.speckle_data.radius] = 1
+
+        return image
+
+
+
+
+
+
 
 
 
