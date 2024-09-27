@@ -37,10 +37,42 @@ class Speckle:
                  speckle_data: SpeckleData) -> None:
         self.speckle_data = speckle_data
 
-    def make_speckle(self) ->np.ndarray:
+    def make_speckle(self) -> np.ndarray:
+        '''
+        Produces a random speckle pattern with given parameters
+        '''
+        area, num_dots_x, num_dots_y, n_tot, b_w_ratio = Speckle._optimal_dot_number(self) # Does this need to be function??
+        print('Initial b/w ratio', b_w_ratio)
 
+        x_dot_2d, y_dot_2d = Speckle._dot_locations(self, num_dots_x, num_dots_y, n_tot)
+        x_px_grid, x_px_trans, y_px_trans = Speckle._px_locations(self)
 
-        number_dots = ((self.speckle_data.proportion_goal * self.speckle_data.size_x * self.speckle_data.size_y)
+        x_px_same_dim = np.repeat(x_px_trans, n_tot, axis=1)
+        x_dot_same_dim = np.repeat(x_dot_2d, area, axis=0)
+        y_px_same_dim = np.repeat(y_px_trans, n_tot, axis=1)
+        y_dot_same_dim = np.repeat(y_dot_2d, area, axis=0)
+
+        dist = np.sqrt((x_dot_same_dim - x_px_same_dim)**2 + (y_dot_same_dim - y_px_same_dim)**2)
+
+        image = np.zeros_like(dist)
+        image = Speckle._threshold_image(self, image, dist)
+
+        # image = gaussian_filter(image, self.speckle_data.gauss_blur)
+
+        image = np.max(image,axis=1)
+        image = image.reshape(x_px_grid.shape)
+
+        if self.speckle_data.white_bg:
+            image = image * -1 + 1
+
+        ratio = Speckle._colour_count(self, image)
+        print('Final b/w ratio:', ratio)
+
+        return image
+
+    def _optimal_dot_number(self):
+        number_dots = ((self.speckle_data.proportion_goal * self.speckle_data.size_x
+                        * self.speckle_data.size_y)
                        / (np.pi * self.speckle_data.radius**2))
 
         x_y_ratio = self.speckle_data.size_x / self.speckle_data.size_y
@@ -52,8 +84,10 @@ class Speckle:
         n_tot = num_dots_x * num_dots_y
         b_w_ratio = round(((np.pi * self.speckle_data.radius**2 * n_tot) /
                      (area)), 3)
-        print('Initial b/w ratio', b_w_ratio)
 
+        return area, num_dots_x, num_dots_y, n_tot, b_w_ratio
+
+    def _dot_locations(self, num_dots_x: int, num_dots_y: int, n_tot: int):
         x_first_dot_pos = self.speckle_data.size_x / (num_dots_x * 2)
         y_first_dot_pos = self.speckle_data.size_y / (num_dots_y * 2)
         dot_centre_x = np.linspace(x_first_dot_pos, (self.speckle_data.size_x - x_first_dot_pos),
@@ -70,6 +104,9 @@ class Speckle:
         x_dot_2d = np.atleast_2d(x_dot_random)
         y_dot_2d = np.atleast_2d((y_dot_random))
 
+        return x_dot_2d, y_dot_2d
+
+    def _px_locations(self):
         px_centre_x = np.linspace(0.5, (self.speckle_data.size_x - 0.5),
                                    num=self.speckle_data.size_x)
         px_centre_y = np.linspace(0.5, (self.speckle_data.size_y - 0.5),
@@ -80,36 +117,8 @@ class Speckle:
         x_px_trans = x_px_2d.T
         y_px_trans = y_px_2d.T
 
-        x_px_same_dim = np.repeat(x_px_trans, n_tot, axis=1)
-        x_dot_same_dim = np.repeat(x_dot_2d, area, axis=0)
+        return x_px_grid, x_px_trans, y_px_trans
 
-        y_px_same_dim = np.repeat(y_px_trans, n_tot, axis=1)
-        y_dot_same_dim = np.repeat(y_dot_2d, area, axis=0)
-
-        dist = np.sqrt((x_dot_same_dim - x_px_same_dim)**2 + (y_dot_same_dim - y_px_same_dim)**2)
-
-        image = np.zeros_like(dist)
-
-        grey_threshold = self.speckle_data.radius + 0.5
-        image[dist < grey_threshold] = 0.2
-        grey_threshold -= 0.1
-        image[dist < grey_threshold] = 0.5
-        grey_threshold -= 0.1
-        image[dist < grey_threshold] = 0.8
-        image[dist < self.speckle_data.radius] = 1
-
-        # image = gaussian_filter(image, self.speckle_data.gauss_blur)
-
-        image = np.max(image,axis=1)
-        image = image.reshape(x_px_grid.shape)
-
-        if self.speckle_data.white_bg:
-            image = image * -1 + 1
-
-        ratio = Speckle._colour_count(self, image)
-        print('Final b/w ratio:', ratio)
-
-        return image
 
     def _random_location(self, n_tot: int, seed: int | None = None) -> np.ndarray:
         '''
@@ -122,70 +131,15 @@ class Speckle:
         random_array = rng.normal(loc=0.0,scale=sigma,size=n_tot)
         return random_array
 
+    def _threshold_image(self, image: np.ndarray, dist: np.ndarray) -> np.ndarray:
+        grey_threshold = self.speckle_data.radius + 0.5
+        image[dist < grey_threshold] = 0.2
+        grey_threshold -= 0.1
+        image[dist < grey_threshold] = 0.5
+        grey_threshold -= 0.1
+        image[dist < grey_threshold] = 0.8
+        image[dist < self.speckle_data.radius] = 1
 
-
-
-
-
-
-
-
-
-
-
-
-    def generate_speckle(self) -> np.ndarray:
-        '''
-        Creates, displays and saves a dotted speckle pattern of specified size and black/white balance
-        '''
-        num_dots = 50
-        proportion = 100
-
-        image = np.zeros((self.speckle_data.size_y, self.speckle_data.size_x))
-
-        circle = np.zeros((self.speckle_data.radius * 2, self.speckle_data.radius * 2))
-        xs, ys = np.meshgrid(np.arange(2 * self.speckle_data.radius), np.arange(2* self.speckle_data.radius))
-        r = ((xs - self.speckle_data.radius) ** 2 + (ys - self.speckle_data.radius) ** 2)** 0.5
-        circle[r < self.speckle_data.radius] = 255
-
-
-        while proportion > self.speckle_data.proportion_goal:
-            for i in range(num_dots):
-                image = Speckle._add_circle(self, image, circle)
-            proportion = Speckle._colour_count(self, image, prop)
-            if proportion > self.speckle_data.proportion_goal:
-                image = np.zeros((self.speckle_data.size_y, self.speckle_data.size_x))
-            else:
-                break
-            num_dots += 30
-            print([proportion])
-        print(proportion)
-        filtered = gaussian_filter(image, self.speckle_data.gauss_blur)
-        if self.speckle_data.white_bg:
-            filtered = filtered * -1 + 1
-
-        return filtered
-
-    def _add_circle(self, image: np.ndarray, circle: np.ndarray) -> np.ndarray:
-        '''
-        Defines a random point and (unless it is out-of-bounds) adds a circle to the image array at that position
-            Parameters:
-                image (array): A 2D image array of specified size
-                circle (array): A 2D array the size of the radius, containing a central circle of values of 255
-            Returns:
-                image (array): The image array with the circle added
-        '''
-        pos_x = np.random.randint(self.speckle_data.radius, (self.speckle_data.size_x - self.speckle_data.radius))
-        pos_y = np.random.randint(self.speckle_data.radius, (self.speckle_data.size_y - self.speckle_data.radius))
-
-        x_start, x_end = pos_x - self.speckle_data.radius, pos_x + self.speckle_data.radius
-        y_start, y_end = pos_y - self.speckle_data.radius, pos_y + self.speckle_data.radius
-
-        if x_start >= 0 and x_end <= self.speckle_data.size_x and y_start >= 0 and y_end <= self.speckle_data.size_y:
-            image[y_start:y_end, x_start:x_end] = 0
-            image[y_start:y_end, x_start:x_end] += circle
-        else:
-            print(f"Skipping out-of-bounds circle at position ({pos_x}, {pos_y})")
         return image
 
     def _colour_count(self, image: np.ndarray) -> float:
