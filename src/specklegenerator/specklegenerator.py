@@ -1,4 +1,3 @@
-import os
 from dataclasses import dataclass
 from pathlib import Path
 from enum import Enum
@@ -38,12 +37,9 @@ class Speckle:
                  speckle_data: SpeckleData) -> None:
         self.speckle_data = speckle_data
 
-    def random_location(self, n_tot: int) -> np.ndarray:
-        sigma = self.speckle_data.radius / 2.2
-        random_array = sigma * np.random.randn(n_tot)
-        return random_array
-
     def make_speckle(self) ->np.ndarray:
+
+
         number_dots = ((self.speckle_data.proportion_goal * self.speckle_data.size_x * self.speckle_data.size_y)
                        / (np.pi * self.speckle_data.radius**2))
 
@@ -54,8 +50,8 @@ class Speckle:
         num_dots_y = int(np.round(num_dots_y))
         num_dots_x = int(np.round(num_dots_x))
         n_tot = num_dots_x * num_dots_y
-        b_w_ratio = ((np.pi * self.speckle_data.radius**2 * n_tot) /
-                     (area))
+        b_w_ratio = round(((np.pi * self.speckle_data.radius**2 * n_tot) /
+                     (area)), 3)
         print('Initial b/w ratio', b_w_ratio)
 
         x_first_dot_pos = self.speckle_data.size_x / (num_dots_x * 2)
@@ -68,9 +64,9 @@ class Speckle:
         x_dot_vec = dot_x_grid.flatten()
         y_dot_vec = dot_y_grid.flatten()
         x_dot_random = np.add(x_dot_vec,
-                              Speckle.random_location(self, n_tot))
+                              Speckle._random_location(self, n_tot))
         y_dot_random = np.add(y_dot_vec,
-                              Speckle.random_location(self, n_tot))
+                              Speckle._random_location(self, n_tot))
         x_dot_2d = np.atleast_2d(x_dot_random)
         y_dot_2d = np.atleast_2d((y_dot_random))
 
@@ -110,10 +106,21 @@ class Speckle:
         if self.speckle_data.white_bg:
             image = image * -1 + 1
 
-        # ratio = Speckle._colour_count(self, image)
-        # print('Final b/w ratio:', ratio)
+        ratio = Speckle._colour_count(self, image)
+        print('Final b/w ratio:', ratio)
 
         return image
+
+    def _random_location(self, n_tot: int, seed: int | None = None) -> np.ndarray:
+        '''
+        Produces a vector the same size as the x and y coordinate vectors containing random values
+            Parameters:
+                n_tot (int): the numer of dots, so the size the vector needs to be
+        '''
+        rng = np.random.default_rng(seed)
+        sigma = self.speckle_data.radius / 2.2
+        random_array = rng.normal(loc=0.0,scale=sigma,size=n_tot)
+        return random_array
 
 
 
@@ -197,7 +204,7 @@ class Speckle:
             count = counts[index]
             all_proportion = (100 * count) / (self.speckle_data.size_x * self.speckle_data.size_y)
             if colour == 0.0:
-                proportion = all_proportion
+                proportion = round((all_proportion / 100), 3)
         return proportion
 
 def show_image(image: np.ndarray):
@@ -229,18 +236,12 @@ def save_image(image: np.ndarray, directory: Path, filename: str) -> None:
     plt.savefig(Path.joinpath(directory, filename_full), format=SpeckleData.file_format, bbox_inches='tight', pad_inches=0, dpi=SpeckleData.image_res)
     plt.close()
 
-def mean_intensity_gradient(image: np.ndarray) -> float:
+def mean_intensity_gradient(image: np.ndarray) -> tuple[float,float,float]:
     intensity_gradient = np.gradient(image)
 
-    intensity_gradient_x = intensity_gradient[0]
-    intensity_gradient_y = intensity_gradient[1]
+    mig_x = np.mean(intensity_gradient[0].flatten())
+    mig_y = np.mean(intensity_gradient[1].flatten())
+    mig = np.mean(np.array(mig_x,mig_y))
 
-    intensity_gradient_mod = np.sqrt(intensity_gradient_x**2 + intensity_gradient_y**2)
-
-    scalar = 1 / (SpeckleData.size_x * SpeckleData.size_y)
-    mean_intensity_grad_array = intensity_gradient_mod * scalar
-    mean_intensity_grad = np.sum(mean_intensity_grad_array)
-    print(f"{mean_intensity_grad=}")
-
-    return mean_intensity_grad
+    return (mig,mig_x,mig_y)
 
