@@ -51,12 +51,7 @@ class Speckle:
         n_tot = num_dots_x * num_dots_y
         b_w_ratio = ((np.pi * self.speckle_data.radius**2 * n_tot) /
                      (area))
-        # print(b_w_ratio)
 
-        # dot_centre_x = np.linspace(0, self.speckle_data.size_x, num=(num_dots_x + 2))
-        # dot_centre_x = dot_centre_x[1:-1]
-        # dot_centre_y = np.linspace(0, self.speckle_data.size_y, num=(num_dots_y + 2))
-        # dot_centre_y = dot_centre_y[1:-1]
         x_first_dot_pos = self.speckle_data.size_x / (num_dots_x * 2)
         y_first_dot_pos = self.speckle_data.size_y / (num_dots_y * 2)
         dot_centre_x = np.linspace(x_first_dot_pos, (self.speckle_data.size_x - x_first_dot_pos),
@@ -87,21 +82,21 @@ class Speckle:
 
         image = np.zeros_like(dist)
 
-        # grey_threshold = self.speckle_data.radius + 0.5
-        # image[dist < grey_threshold] = 0.2
-        # grey_threshold -= 0.2
-        # image[dist < grey_threshold] = 0.5
-        # grey_threshold -= 0.1
-        # image[dist < grey_threshold] = 0.8
-        image[dist < self.speckle_data.radius] = 255
+        grey_threshold = self.speckle_data.radius + 0.5
+        image[dist < grey_threshold] = 0.2
+        grey_threshold -= 0.1
+        image[dist < grey_threshold] = 0.5
+        grey_threshold -= 0.1
+        image[dist < grey_threshold] = 0.8
+        image[dist < self.speckle_data.radius] = 1
 
-        image = gaussian_filter(image, self.speckle_data.gauss_blur)
+        # image = gaussian_filter(image, self.speckle_data.gauss_blur)
 
         image = np.max(image,axis=1)
         image = image.reshape(x_px_grid.shape)
 
-        # if self.speckle_data.white_bg:
-        #     image = image * -1 + 1
+        if self.speckle_data.white_bg:
+            image = image * -1 + 1
 
         return image
 
@@ -218,3 +213,19 @@ def save_image(image: np.ndarray, directory: Path, filename: str) -> None:
     plt.imshow(image, cmap='grey', vmin=0, vmax=1)
     plt.savefig(Path.joinpath(directory, filename_full), format=SpeckleData.file_format, bbox_inches='tight', pad_inches=0, dpi=SpeckleData.image_res)
     plt.close()
+
+def mean_intensity_gradient(image: np.ndarray) -> float:
+    intensity_gradient = np.gradient(image)
+
+    intensity_gradient_x = intensity_gradient[0]
+    intensity_gradient_y = intensity_gradient[1]
+
+    intensity_gradient_mod = np.sqrt(intensity_gradient_x**2 + intensity_gradient_y**2)
+
+    scalar = 1 / (SpeckleData.size_x * SpeckleData.size_y)
+    mean_intensity_grad_array = intensity_gradient_mod * scalar
+    mean_intensity_grad = np.sum(mean_intensity_grad_array)
+    print(f"{mean_intensity_grad=}")
+
+    return mean_intensity_grad
+
