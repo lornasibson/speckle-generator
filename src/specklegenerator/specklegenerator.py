@@ -14,7 +14,7 @@ class FileFormat(Enum):
 class SpeckleData:
     size_x: int = 500
     size_y:int = 500
-    radius:int = 20
+    radius:int = 10
     proportion_goal:float = 0.5
     white_bg:bool = True
     image_res:int = 200
@@ -38,6 +38,11 @@ class Speckle:
                  speckle_data: SpeckleData) -> None:
         self.speckle_data = speckle_data
 
+    def random_location(self, n_tot: int) -> np.ndarray:
+        sigma = self.speckle_data.radius / 2.2
+        random_array = sigma * np.random.randn(n_tot)
+        return random_array
+
     def make_speckle(self) ->np.ndarray:
         number_dots = ((self.speckle_data.proportion_goal * self.speckle_data.size_x * self.speckle_data.size_y)
                        / (np.pi * self.speckle_data.radius**2))
@@ -51,6 +56,7 @@ class Speckle:
         n_tot = num_dots_x * num_dots_y
         b_w_ratio = ((np.pi * self.speckle_data.radius**2 * n_tot) /
                      (area))
+        print('Initial b/w ratio', b_w_ratio)
 
         x_first_dot_pos = self.speckle_data.size_x / (num_dots_x * 2)
         y_first_dot_pos = self.speckle_data.size_y / (num_dots_y * 2)
@@ -59,8 +65,14 @@ class Speckle:
         dot_centre_y = np.linspace(y_first_dot_pos, (self.speckle_data.size_y - y_first_dot_pos),
                                    num=num_dots_y)
         dot_x_grid, dot_y_grid = np.meshgrid(dot_centre_x, dot_centre_y)
-        x_dot_2d = np.atleast_2d(dot_x_grid.flatten())
-        y_dot_2d = np.atleast_2d(dot_y_grid.flatten())
+        x_dot_vec = dot_x_grid.flatten()
+        y_dot_vec = dot_y_grid.flatten()
+        x_dot_random = np.add(x_dot_vec,
+                              Speckle.random_location(self, n_tot))
+        y_dot_random = np.add(y_dot_vec,
+                              Speckle.random_location(self, n_tot))
+        x_dot_2d = np.atleast_2d(x_dot_random)
+        y_dot_2d = np.atleast_2d((y_dot_random))
 
         px_centre_x = np.linspace(0.5, (self.speckle_data.size_x - 0.5),
                                    num=self.speckle_data.size_x)
@@ -97,6 +109,9 @@ class Speckle:
 
         if self.speckle_data.white_bg:
             image = image * -1 + 1
+
+        # ratio = Speckle._colour_count(self, image)
+        # print('Final b/w ratio:', ratio)
 
         return image
 
