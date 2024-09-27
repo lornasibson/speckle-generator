@@ -17,9 +17,9 @@ class SpeckleData:
     radius:int = 20
     proportion_goal:float = 0.5
     white_bg:bool = True
-    image_res:int = 300
+    image_res:int = 200
     file_format:FileFormat = FileFormat.TIFF.value
-    gauss_blur: float = 0.9
+    gauss_blur: float = 1
 
 
 class Speckle:
@@ -41,6 +41,7 @@ class Speckle:
     def make_speckle(self) ->np.ndarray:
         number_dots = ((self.speckle_data.proportion_goal * self.speckle_data.size_x * self.speckle_data.size_y)
                        / (np.pi * self.speckle_data.radius**2))
+
         x_y_ratio = self.speckle_data.size_x / self.speckle_data.size_y
         area = self.speckle_data.size_x * self.speckle_data.size_y
         num_dots_y = np.sqrt(number_dots / x_y_ratio)
@@ -52,48 +53,55 @@ class Speckle:
                      (area))
         # print(b_w_ratio)
 
-        dot_centre_x = np.linspace(0, self.speckle_data.size_x, num=(num_dots_x + 2))
-        dot_centre_x = dot_centre_x[1:-1]
-        dot_centre_y = np.linspace(0, self.speckle_data.size_y, num=(num_dots_y + 2))
-        dot_centre_y = dot_centre_y[1:-1]
-        dot_x, dot_y = np.meshgrid(dot_centre_x, dot_centre_y)
-        x_dot = dot_x.flatten()
-        y_dot = dot_y.flatten()
+        # dot_centre_x = np.linspace(0, self.speckle_data.size_x, num=(num_dots_x + 2))
+        # dot_centre_x = dot_centre_x[1:-1]
+        # dot_centre_y = np.linspace(0, self.speckle_data.size_y, num=(num_dots_y + 2))
+        # dot_centre_y = dot_centre_y[1:-1]
+        x_first_dot_pos = self.speckle_data.size_x / (num_dots_x * 2)
+        y_first_dot_pos = self.speckle_data.size_y / (num_dots_y * 2)
+        dot_centre_x = np.linspace(x_first_dot_pos, (self.speckle_data.size_x - x_first_dot_pos),
+                                   num=num_dots_x)
+        dot_centre_y = np.linspace(y_first_dot_pos, (self.speckle_data.size_y - y_first_dot_pos),
+                                   num=num_dots_y)
+        dot_x_grid, dot_y_grid = np.meshgrid(dot_centre_x, dot_centre_y)
+        x_dot_2d = np.atleast_2d(dot_x_grid.flatten())
+        y_dot_2d = np.atleast_2d(dot_y_grid.flatten())
 
         px_centre_x = np.linspace(0.5, (self.speckle_data.size_x - 0.5),
                                    num=self.speckle_data.size_x)
         px_centre_y = np.linspace(0.5, (self.speckle_data.size_y - 0.5),
                                    num=self.speckle_data.size_y)
-        px_x, px_y = np.meshgrid(px_centre_x, px_centre_y)
-        x_px = px_x.flatten()
-        y_px = px_y.flatten()
+        x_px_grid,y_px_grid  = np.meshgrid(px_centre_x, px_centre_y)
+        x_px_2d = np.atleast_2d(x_px_grid.flatten())
+        y_px_2d = np.atleast_2d(y_px_grid.flatten())
+        x_px_trans = x_px_2d.T
+        y_px_trans = y_px_2d.T
 
-
-
-        image = np.zeros((self.speckle_data.size_y, self.speckle_data.size_x))
-
-        x_dot_2d = np.atleast_2d(x_dot)
-        x_px_2d = np.atleast_2d(x_px)
-        x_px_trans = np.transpose(x_px_2d)
         x_px_same_dim = np.repeat(x_px_trans, n_tot, axis=1)
         x_dot_same_dim = np.repeat(x_dot_2d, area, axis=0)
 
-        y_dot_2d = np.atleast_2d(y_dot)
-        y_px_2d = np.atleast_2d(y_px)
-        y_px_trans = np.transpose(y_px_2d)
         y_px_same_dim = np.repeat(y_px_trans, n_tot, axis=1)
         y_dot_same_dim = np.repeat(y_dot_2d, area, axis=0)
 
-        d = np.sqrt((x_dot_same_dim - x_px_same_dim)**2 + (y_dot_same_dim - y_px_same_dim)**2)
+        dist = np.sqrt((x_dot_same_dim - x_px_same_dim)**2 + (y_dot_same_dim - y_px_same_dim)**2)
 
+        image = np.zeros_like(dist)
 
-        # image[d < self.speckle_dsata.radius] = 1
+        # grey_threshold = self.speckle_data.radius + 0.5
+        # image[dist < grey_threshold] = 0.2
+        # grey_threshold -= 0.2
+        # image[dist < grey_threshold] = 0.5
+        # grey_threshold -= 0.1
+        # image[dist < grey_threshold] = 0.8
+        image[dist < self.speckle_data.radius] = 255
 
-        d_split = np.split(d, n_tot, axis=1)
+        image = gaussian_filter(image, self.speckle_data.gauss_blur)
 
-        for i in range(n_tot):
-            dot = d_split[i].reshape((self.speckle_data.size_y, self.speckle_data.size_x))
-            image[dot < self.speckle_data.radius] = 1
+        image = np.max(image,axis=1)
+        image = image.reshape(x_px_grid.shape)
+
+        # if self.speckle_data.white_bg:
+        #     image = image * -1 + 1
 
         return image
 
@@ -127,7 +135,7 @@ class Speckle:
         while proportion > self.speckle_data.proportion_goal:
             for i in range(num_dots):
                 image = Speckle._add_circle(self, image, circle)
-            proportion = Speckle._colour_count(self, image, proportion)
+            proportion = Speckle._colour_count(self, image, prop)
             if proportion > self.speckle_data.proportion_goal:
                 image = np.zeros((self.speckle_data.size_y, self.speckle_data.size_x))
             else:
@@ -163,7 +171,7 @@ class Speckle:
             print(f"Skipping out-of-bounds circle at position ({pos_x}, {pos_y})")
         return image
 
-    def _colour_count(self, image: np.ndarray, proportion: float) -> float:
+    def _colour_count(self, image: np.ndarray) -> float:
         '''
         Return proportion of black pixels (with value 0) in image array as a percentage
             Parameters:
@@ -173,6 +181,7 @@ class Speckle:
                 proportion (float): An updated percentage proportion of black in the image array
         '''
         count = 0
+        proportion = 0
         colours, counts = np.unique(image, return_counts=1)
         for index, colour in enumerate(colours):
             count = counts[index]
