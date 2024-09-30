@@ -5,6 +5,7 @@ from pathlib import Path
 from specklegenerator.specklegenerator import (
     Speckle,
     SpeckleData,
+    _px_locations,
     show_image,
     save_image,
     mean_intensity_gradient)
@@ -17,17 +18,17 @@ def main() -> None:
     - Image displayed on screen
     - Image saved to specifed filename in specified location
     '''
-    filename = 'new_speckle_max'
+    filename = 'new_speckle_8_bit'
     directory = Path.cwd() / "images"
     speckle_data = SpeckleData()
 
 
 
     speckle = Speckle(speckle_data)
-    image = speckle.make_speckle()
-    show_image(image)
+    image = speckle.make()
+    # show_image(image)
     save_image(image, directory, filename)
-    mean_intensity_gradient(image)
+    # mean_intensity_gradient(image)
 
 if __name__ == '__main__':
     main()
