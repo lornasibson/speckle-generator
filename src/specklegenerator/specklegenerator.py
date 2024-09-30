@@ -44,7 +44,19 @@ class Speckle:
         '''
         Produces a random speckle pattern with given parameters
         '''
-        area, num_dots_x, num_dots_y, n_tot, b_w_ratio = Speckle._optimal_dot_number(self)
+        number_dots = ((self.speckle_data.proportion_goal * self.speckle_data.size_x
+                        * self.speckle_data.size_y)
+                       / (np.pi * self.speckle_data.radius**2))
+
+        x_y_ratio = self.speckle_data.size_x / self.speckle_data.size_y
+        area = self.speckle_data.size_x * self.speckle_data.size_y
+        num_dots_y = np.sqrt(number_dots / x_y_ratio)
+        num_dots_x = number_dots / num_dots_y
+        num_dots_y = int(np.round(num_dots_y))
+        num_dots_x = int(np.round(num_dots_x))
+        n_tot = num_dots_x * num_dots_y
+        b_w_ratio = round(((np.pi * self.speckle_data.radius**2 * n_tot) /
+                     (area)), 3)
         print('Initial b/w ratio', b_w_ratio)
 
         x_dot_2d, y_dot_2d = Speckle._dot_locations(self, num_dots_x, num_dots_y, n_tot)
@@ -72,23 +84,6 @@ class Speckle:
         print('Final b/w ratio:', ratio)
 
         return image
-
-    def _optimal_dot_number(self):
-        number_dots = ((self.speckle_data.proportion_goal * self.speckle_data.size_x
-                        * self.speckle_data.size_y)
-                       / (np.pi * self.speckle_data.radius**2))
-
-        x_y_ratio = self.speckle_data.size_x / self.speckle_data.size_y
-        area = self.speckle_data.size_x * self.speckle_data.size_y
-        num_dots_y = np.sqrt(number_dots / x_y_ratio)
-        num_dots_x = number_dots / num_dots_y
-        num_dots_y = int(np.round(num_dots_y))
-        num_dots_x = int(np.round(num_dots_x))
-        n_tot = num_dots_x * num_dots_y
-        b_w_ratio = round(((np.pi * self.speckle_data.radius**2 * n_tot) /
-                     (area)), 3)
-
-        return area, num_dots_x, num_dots_y, n_tot, b_w_ratio
 
     def _dot_locations(self, num_dots_x: int, num_dots_y: int, n_tot: int) -> tuple[np.ndarray, np.ndarray]:
         '''
