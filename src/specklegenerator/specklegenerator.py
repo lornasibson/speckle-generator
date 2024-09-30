@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 from enum import Enum
+from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter
@@ -16,12 +17,13 @@ class SpeckleData:
     '''
     size_x: int = 500
     size_y:int = 500
-    radius:int = 10
+    radius:int = 8
     proportion_goal:float = 0.5
     white_bg:bool = True
     image_res:int = 200
     file_format:FileFormat = FileFormat.TIFF.value
     gauss_blur: float = 1
+    bits: int = 8
 
 
 class Speckle:
@@ -37,13 +39,49 @@ class Speckle:
             image_res (int): An integer value of the desired image resolution in dpi
     '''
     def __init__(self,
-                 speckle_data: SpeckleData) -> None:
+                 speckle_data: SpeckleData,
+                 seed: int | None = None) -> None:
         self.speckle_data = speckle_data
 
-    def make_speckle(self) -> np.ndarray:
+    def make(self) -> np.ndarray:
         '''
         Produces a random speckle pattern with given parameters
         '''
+        num_dots_x, num_dots_y, n_tot = self._optimal_dot_number()
+        x_dot_2d, y_dot_2d = self._dot_locations(num_dots_x, num_dots_y, n_tot)
+        grid_shape, x_px_trans, y_px_trans = _px_locations(self.speckle_data.size_x,
+                                                          self.speckle_data.size_y)
+
+        x_px_same_dim = np.repeat(x_px_trans, n_tot, axis=1)
+        x_dot_same_dim = np.repeat(x_dot_2d, (self.speckle_data.size_x *
+                                              self.speckle_data.size_y), axis=0)
+        y_px_same_dim = np.repeat(y_px_trans, n_tot, axis=1)
+        y_dot_same_dim = np.repeat(y_dot_2d, (self.speckle_data.size_x *
+                                              self.speckle_data.size_y), axis=0)
+        del(x_px_trans, x_dot_2d, y_px_trans, y_dot_2d)
+
+        dist = np.sqrt((x_dot_same_dim - x_px_same_dim)**2 + (y_dot_same_dim - y_px_same_dim)**2)
+
+        del(x_dot_same_dim, x_px_same_dim, y_dot_same_dim, y_px_same_dim)
+
+        image = np.zeros_like(dist)
+        image = self._threshold_image(image, dist)
+        del(dist)
+
+        # image = gaussian_filter(image, self.speckle_data.gauss_blur)
+
+        image = np.max(image,axis=1)
+        image = image.reshape(grid_shape)
+
+        if self.speckle_data.white_bg:
+            image = image * -1 + 1
+
+        ratio = Speckle._colour_count(self, image)
+        print('Final b/w ratio:', ratio)
+
+        return image
+
+    def _optimal_dot_number(self):
         number_dots = ((self.speckle_data.proportion_goal * self.speckle_data.size_x
                         * self.speckle_data.size_y)
                        / (np.pi * self.speckle_data.radius**2))
@@ -59,31 +97,9 @@ class Speckle:
                      (area)), 3)
         print('Initial b/w ratio', b_w_ratio)
 
-        x_dot_2d, y_dot_2d = Speckle._dot_locations(self, num_dots_x, num_dots_y, n_tot)
-        x_px_grid, x_px_trans, y_px_trans = Speckle._px_locations(self)
+        return num_dots_x, num_dots_y, n_tot
 
-        x_px_same_dim = np.repeat(x_px_trans, n_tot, axis=1)
-        x_dot_same_dim = np.repeat(x_dot_2d, area, axis=0)
-        y_px_same_dim = np.repeat(y_px_trans, n_tot, axis=1)
-        y_dot_same_dim = np.repeat(y_dot_2d, area, axis=0)
 
-        dist = np.sqrt((x_dot_same_dim - x_px_same_dim)**2 + (y_dot_same_dim - y_px_same_dim)**2)
-
-        image = np.zeros_like(dist)
-        image = Speckle._threshold_image(self, image, dist)
-
-        # image = gaussian_filter(image, self.speckle_data.gauss_blur)
-
-        image = np.max(image,axis=1)
-        image = image.reshape(x_px_grid.shape)
-
-        if self.speckle_data.white_bg:
-            image = image * -1 + 1
-
-        ratio = Speckle._colour_count(self, image)
-        print('Final b/w ratio:', ratio)
-
-        return image
 
     def _dot_locations(self, num_dots_x: int, num_dots_y: int, n_tot: int) -> tuple[np.ndarray, np.ndarray]:
         '''
@@ -103,37 +119,21 @@ class Speckle:
         dot_centre_y = np.linspace(y_first_dot_pos, (self.speckle_data.size_y - y_first_dot_pos),
                                    num=num_dots_y)
         dot_x_grid, dot_y_grid = np.meshgrid(dot_centre_x, dot_centre_y)
+        del(dot_centre_x, dot_centre_y)
         x_dot_vec = dot_x_grid.flatten()
         y_dot_vec = dot_y_grid.flatten()
+        del(dot_x_grid, dot_y_grid)
         x_dot_random = np.add(x_dot_vec,
                               Speckle._random_location(self, n_tot))
         y_dot_random = np.add(y_dot_vec,
                               Speckle._random_location(self, n_tot))
+        del(x_dot_vec, y_dot_vec)
         x_dot_2d = np.atleast_2d(x_dot_random)
         y_dot_2d = np.atleast_2d((y_dot_random))
 
+        del(x_dot_random, y_dot_random)
+
         return (x_dot_2d, y_dot_2d)
-
-    def _px_locations(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        '''
-        Returns arrays of the pixel locations in both the x and y directions
-            Returns:
-                x_px_grid (np.ndarray): The pixel locations in the x-dir as a 2D array the same shape as the image
-                x_px_trans (np.ndarray): The pixel locations in the x-dir as a 2D array with values only in 1D
-                y_px_trans (np.ndarray): The pixel locations in the y-dir as a 2D array with values only in 1D
-        '''
-        px_centre_x = np.linspace(0.5, (self.speckle_data.size_x - 0.5),
-                                   num=self.speckle_data.size_x)
-        px_centre_y = np.linspace(0.5, (self.speckle_data.size_y - 0.5),
-                                   num=self.speckle_data.size_y)
-        x_px_grid,y_px_grid  = np.meshgrid(px_centre_x, px_centre_y)
-        x_px_2d = np.atleast_2d(x_px_grid.flatten())
-        y_px_2d = np.atleast_2d(y_px_grid.flatten())
-        x_px_trans = x_px_2d.T
-        y_px_trans = y_px_2d.T
-
-        return (x_px_grid, x_px_trans, y_px_trans)
-
 
     def _random_location(self, n_tot: int, seed: int | None = None) -> np.ndarray:
         '''
@@ -177,7 +177,33 @@ class Speckle:
             all_proportion = (100 * count) / (self.speckle_data.size_x * self.speckle_data.size_y)
             if colour == 0.0:
                 proportion = round((all_proportion / 100), 3)
+        del(colours, counts)
+
         return proportion
+
+def _px_locations(size_x: int, size_y: int) -> tuple[tuple, np.ndarray, np.ndarray]:
+    '''
+    Returns arrays of the pixel locations in both the x and y directions
+        Returns:
+            x_px_grid (np.ndarray): The pixel locations in the x-dir as a 2D array the same shape as the image
+            x_px_trans (np.ndarray): The pixel locations in the x-dir as a 2D array with values only in 1D
+            y_px_trans (np.ndarray): The pixel locations in the y-dir as a 2D array with values only in 1D
+    '''
+    px_centre_x = np.linspace(0.5, (size_x - 0.5),
+                                num=size_x)
+    px_centre_y = np.linspace(0.5, (size_y - 0.5),
+                                num=size_y)
+    x_px_grid,y_px_grid  = np.meshgrid(px_centre_x, px_centre_y)
+    del(px_centre_x, px_centre_y)
+    grid_shape = x_px_grid.shape
+    x_px_2d = np.atleast_2d(x_px_grid.flatten())
+    y_px_2d = np.atleast_2d(y_px_grid.flatten())
+    del(x_px_grid, y_px_grid)
+    x_px_trans = x_px_2d.T
+    y_px_trans = y_px_2d.T
+    del(x_px_2d, y_px_2d)
+
+    return (grid_shape, x_px_trans, y_px_trans)
 
 def show_image(image: np.ndarray) -> None:
     '''
@@ -193,22 +219,30 @@ def show_image(image: np.ndarray) -> None:
     plt.show()
     plt.close()
 
-def save_image(image: np.ndarray, directory: Path, filename: str) -> None:
+def save_image(image: np.ndarray, directory: Path, filename: str, bits: int = SpeckleData.bits) -> None:
     '''
     Saves image to specified filename and location
         Parameters:
             image (arrray): A 2D array to be plotted
     '''
     filename_full = filename + '.' + SpeckleData.file_format
+    filepath = Path.joinpath(directory, filename_full)
     px = 1/plt.rcParams['figure.dpi']
-    plt.figure(figsize=((SpeckleData.size_x * px), (SpeckleData.size_y  * px)))
-    plt.xticks([])
-    plt.yticks([])
-    plt.imshow(image, cmap='grey', vmin=0, vmax=1)
-    plt.savefig(Path.joinpath(directory, filename_full),
-                format=SpeckleData.file_format, bbox_inches='tight',
-                pad_inches=0, dpi=SpeckleData.image_res)
-    plt.close()
+
+    bits_pp = 2**bits - 1
+    image = bits_pp * image
+    if bits == 8:
+        image = image.astype(np.uint8)
+    elif bits == 16:
+        image = image.astype(np.uint16)
+    elif bits == 12:
+        image = image.astype(np.uint8)
+    else:
+        print('Error: Bit depth added not acceptable')
+
+    tiff_image = Image.fromarray(image)
+    res = SpeckleData.image_res
+    tiff_image.save(filepath, SpeckleData.file_format, dpi=(res, res))
 
 def mean_intensity_gradient(image: np.ndarray) -> tuple[float,float,float]:
     '''
