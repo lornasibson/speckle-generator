@@ -227,4 +227,3 @@ def mean_intensity_gradient(image: np.ndarray) -> tuple[float,float,float]:
     mig = np.mean(np.array(mig_x,mig_y))
 
     return (mig,mig_x,mig_y)
-
