@@ -2,7 +2,12 @@
 example: generating a simple speckle pattern
 '''
 from pathlib import Path
-from specklegenerator.specklegenerator import Speckle, SpeckleData, show_image, save_image
+from specklegenerator.specklegenerator import (
+    Speckle,
+    SpeckleData,
+    show_image,
+    save_image,
+    mean_intensity_gradient)
 
 def main() -> None:
     '''
@@ -12,13 +17,17 @@ def main() -> None:
     - Image displayed on screen
     - Image saved to specifed filename in specified location
     '''
-    filename = 'speckle_pattern_set1'
+    filename = 'new_speckle_max'
     directory = Path.cwd() / "images"
     speckle_data = SpeckleData()
+
+
+
     speckle = Speckle(speckle_data)
-    speckle.make_speckle()
-    # show_image(image)
-    # save_image(image, directory, filename)
+    image = speckle.make_speckle()
+    show_image(image)
+    save_image(image, directory, filename)
+    mean_intensity_gradient(image)
 
 if __name__ == '__main__':
     main()
