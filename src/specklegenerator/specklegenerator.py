@@ -11,6 +11,9 @@ class FileFormat(Enum):
 
 @dataclass
 class SpeckleData:
+    '''
+    Data class to store default parameters
+    '''
     size_x: int = 500
     size_y:int = 500
     radius:int = 10
@@ -41,7 +44,7 @@ class Speckle:
         '''
         Produces a random speckle pattern with given parameters
         '''
-        area, num_dots_x, num_dots_y, n_tot, b_w_ratio = Speckle._optimal_dot_number(self) # Does this need to be function??
+        area, num_dots_x, num_dots_y, n_tot, b_w_ratio = Speckle._optimal_dot_number(self)
         print('Initial b/w ratio', b_w_ratio)
 
         x_dot_2d, y_dot_2d = Speckle._dot_locations(self, num_dots_x, num_dots_y, n_tot)
@@ -87,7 +90,17 @@ class Speckle:
 
         return area, num_dots_x, num_dots_y, n_tot, b_w_ratio
 
-    def _dot_locations(self, num_dots_x: int, num_dots_y: int, n_tot: int):
+    def _dot_locations(self, num_dots_x: int, num_dots_y: int, n_tot: int) -> tuple[np.ndarray, np.ndarray]:
+        '''
+        Finds the dot coordinates in an even grid and applies a function to move them randomly
+            Parameters:
+                num_dots_x (int): Number of dots in the x-dir for the required b/w ratio
+                num_dots_y (int): Number of dots in the y-dir for the required b/w ratio
+                n_tot (int): The total number of dots for the required b/w ratio
+            Returns:
+                x_dot_2d (np.ndarray): The dot coordinates in the x-dir, as a 2D array
+                y_dot_2d (np.ndarray): The dot coordinates in the y-dir, as a 2D array
+        '''
         x_first_dot_pos = self.speckle_data.size_x / (num_dots_x * 2)
         y_first_dot_pos = self.speckle_data.size_y / (num_dots_y * 2)
         dot_centre_x = np.linspace(x_first_dot_pos, (self.speckle_data.size_x - x_first_dot_pos),
@@ -104,9 +117,16 @@ class Speckle:
         x_dot_2d = np.atleast_2d(x_dot_random)
         y_dot_2d = np.atleast_2d((y_dot_random))
 
-        return x_dot_2d, y_dot_2d
+        return (x_dot_2d, y_dot_2d)
 
-    def _px_locations(self):
+    def _px_locations(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        '''
+        Returns arrays of the pixel locations in both the x and y directions
+            Returns:
+                x_px_grid (np.ndarray): The pixel locations in the x-dir as a 2D array the same shape as the image
+                x_px_trans (np.ndarray): The pixel locations in the x-dir as a 2D array with values only in 1D
+                y_px_trans (np.ndarray): The pixel locations in the y-dir as a 2D array with values only in 1D
+        '''
         px_centre_x = np.linspace(0.5, (self.speckle_data.size_x - 0.5),
                                    num=self.speckle_data.size_x)
         px_centre_y = np.linspace(0.5, (self.speckle_data.size_y - 0.5),
@@ -117,14 +137,17 @@ class Speckle:
         x_px_trans = x_px_2d.T
         y_px_trans = y_px_2d.T
 
-        return x_px_grid, x_px_trans, y_px_trans
+        return (x_px_grid, x_px_trans, y_px_trans)
 
 
     def _random_location(self, n_tot: int, seed: int | None = None) -> np.ndarray:
         '''
         Produces a vector the same size as the x and y coordinate vectors containing random values
             Parameters:
-                n_tot (int): the numer of dots, so the size the vector needs to be
+                n_tot (int): The numer of dots, so the size the vector needs to be
+                seed (int): A value to initialise the random number generator
+            Returns:
+                random_array (np.ndarray): An array of random numbers the same size as the dot location vector
         '''
         rng = np.random.default_rng(seed)
         sigma = self.speckle_data.radius / 2.2
@@ -161,7 +184,7 @@ class Speckle:
                 proportion = round((all_proportion / 100), 3)
         return proportion
 
-def show_image(image: np.ndarray):
+def show_image(image: np.ndarray) -> None:
     '''
     Defines figure size and formatting (no axes) and plots the image array in greyscale
         Parameters:
@@ -187,10 +210,21 @@ def save_image(image: np.ndarray, directory: Path, filename: str) -> None:
     plt.xticks([])
     plt.yticks([])
     plt.imshow(image, cmap='grey', vmin=0, vmax=1)
-    plt.savefig(Path.joinpath(directory, filename_full), format=SpeckleData.file_format, bbox_inches='tight', pad_inches=0, dpi=SpeckleData.image_res)
+    plt.savefig(Path.joinpath(directory, filename_full),
+                format=SpeckleData.file_format, bbox_inches='tight',
+                pad_inches=0, dpi=SpeckleData.image_res)
     plt.close()
 
 def mean_intensity_gradient(image: np.ndarray) -> tuple[float,float,float]:
+    '''
+    Calculates the mean intensity gradient and returns the overall MIG as well as in the x and y directions
+        Parameters:
+            image (np.ndarray): The final image array
+        Returns:
+            mig (float): The overall mean intensity gradient for the image
+            mig_x (float): The mean intensity gradient in the x-direction
+            mig_y (float): The mean intensity gradient in the y-direction
+    '''
     intensity_gradient = np.gradient(image)
 
     mig_x = np.mean(intensity_gradient[0].flatten())
