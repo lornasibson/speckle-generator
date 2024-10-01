@@ -8,16 +8,16 @@ from scipy.ndimage import gaussian_filter
 
 class FileFormat(Enum):
     TIFF = 'tiff'
-    BITMAP = 'raw'
+    BITMAP = 'bmp'
 
 @dataclass
 class SpeckleData:
     '''
     Data class to store default parameters
     '''
-    size_x: int = 500
-    size_y:int = 500
-    radius:int = 8
+    size_x: int = 100
+    size_y:int = 100
+    radius:int = 5
     proportion_goal:float = 0.5
     white_bg:bool = True
     image_res:int = 200
@@ -42,6 +42,7 @@ class Speckle:
                  speckle_data: SpeckleData,
                  seed: int | None = None) -> None:
         self.speckle_data = speckle_data
+        self.seed = seed
 
     def make(self) -> np.ndarray:
         '''
@@ -77,6 +78,10 @@ class Speckle:
 
         if self.speckle_data.white_bg:
             image = image * -1 + 1
+
+        bits_pp = (2**self.speckle_data.bits) - 1
+        image = bits_pp * image
+        image = np.floor(image)
 
         ratio = _colour_count(self.speckle_data.size_x, self.speckle_data.size_y,
                                image)
@@ -134,10 +139,12 @@ class Speckle:
         x_dot_vec = dot_x_grid.flatten()
         y_dot_vec = dot_y_grid.flatten()
         del(dot_x_grid, dot_y_grid)
-        x_dot_random = np.add(x_dot_vec,
-                              Speckle._random_location(self, n_tot))
-        y_dot_random = np.add(y_dot_vec,
-                              Speckle._random_location(self, n_tot))
+        x_dot_random = np.add(x_dot_vec, _random_location(self.seed,
+                                                          self.speckle_data.radius,
+                                                          n_tot))
+        y_dot_random = np.add(y_dot_vec, _random_location(self.seed,
+                                                         self.speckle_data.radius,
+                                                         n_tot))
         del(x_dot_vec, y_dot_vec)
         x_dot_2d = np.atleast_2d(x_dot_random)
         y_dot_2d = np.atleast_2d((y_dot_random))
@@ -145,21 +152,6 @@ class Speckle:
         del(x_dot_random, y_dot_random)
 
         return (x_dot_2d, y_dot_2d)
-
-    def _random_location(self, n_tot: int, seed: int | None = None) -> np.ndarray:
-        '''
-        Produces a vector the same size as the x and y coordinate vectors containing random values
-            Parameters:
-                n_tot (int): The numer of dots, so the size the vector needs to be
-                seed (int): A value to initialise the random number generator
-            Returns:
-                random_array (np.ndarray): An array of random numbers the same
-                    size as the dot location vector
-        '''
-        rng = np.random.default_rng(seed)
-        sigma = self.speckle_data.radius / 2.2
-        random_array = rng.normal(loc=0.0,scale=sigma,size=n_tot)
-        return random_array
 
     def _threshold_image(self, image: np.ndarray, dist: np.ndarray) -> np.ndarray:
         grey_threshold = self.speckle_data.radius + 0.5
@@ -172,7 +164,22 @@ class Speckle:
 
         return image
 
-def _colour_count(size_x, size_y, image: np.ndarray) -> float:
+def _random_location(seed: int | None, radius: int, n_tot: int) -> np.ndarray:
+        '''
+        Produces a vector the same size as the x and y coordinate vectors containing random values
+            Parameters:
+                n_tot (int): The numer of dots, so the size the vector needs to be
+                seed (int): A value to initialise the random number generator
+            Returns:
+                random_array (np.ndarray): An array of random numbers the same
+                    size as the dot location vector
+        '''
+        rng = np.random.default_rng(seed)
+        sigma = radius / 2.2
+        random_array = rng.normal(loc=0.0,scale=sigma,size=n_tot)
+        return random_array
+
+def _colour_count(size_x: int, size_y: int, image: np.ndarray) -> float:
     '''
     Return proportion of black pixels (with value 0) in image array as a percentage
         Parameters:
@@ -244,8 +251,6 @@ def save_image(image: np.ndarray, directory: Path, filename: str, bits: int = Sp
     filepath = Path.joinpath(directory, filename_full)
     px = 1/plt.rcParams['figure.dpi']
 
-    bits_pp = 2**bits - 1
-    image = bits_pp * image
     if bits == 8:
         image = image.astype(np.uint8)
     elif bits == 16:
