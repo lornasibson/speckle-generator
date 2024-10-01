@@ -3,12 +3,6 @@ from PIL import Image
 import numpy as np
 from specklegenerator.specklegenerator import Speckle, SpeckleData, FileFormat
 
-@pytest.fixture(autouse=True)
-def setup_teardown():
-    # Setup
-    yield
-    # Teardown - remove output files
-
 
 def test_happy_speckle():
     seed = 8
