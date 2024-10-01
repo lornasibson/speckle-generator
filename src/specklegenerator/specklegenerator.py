@@ -46,6 +46,8 @@ class Speckle:
     def make(self) -> np.ndarray:
         '''
         Produces a random speckle pattern with given parameters
+            Returns:
+                image (np.ndarray): An image array containing a speckle pattern
         '''
         num_dots_x, num_dots_y, n_tot = self._optimal_dot_number()
         x_dot_2d, y_dot_2d = self._dot_locations(num_dots_x, num_dots_y, n_tot)
@@ -76,12 +78,21 @@ class Speckle:
         if self.speckle_data.white_bg:
             image = image * -1 + 1
 
-        ratio = Speckle._colour_count(self, image)
+        ratio = _colour_count(self.speckle_data.size_x, self.speckle_data.size_y,
+                               image)
         print('Final b/w ratio:', ratio)
 
         return image
 
     def _optimal_dot_number(self):
+        '''
+        Function to calculate the number of dots needed in the x and y directions
+        to give the required b/w ratio
+            Returns:
+                num_dots_x (int): The number of dots in the x-dir
+                num_dots_y (int): The number of dots in the y-dir
+                n_tot (int): The total number of dots
+        '''
         number_dots = ((self.speckle_data.proportion_goal * self.speckle_data.size_x
                         * self.speckle_data.size_y)
                        / (np.pi * self.speckle_data.radius**2))
@@ -97,7 +108,7 @@ class Speckle:
                      (area)), 3)
         print('Initial b/w ratio', b_w_ratio)
 
-        return num_dots_x, num_dots_y, n_tot
+        return (num_dots_x, num_dots_y, n_tot)
 
 
 
@@ -142,7 +153,8 @@ class Speckle:
                 n_tot (int): The numer of dots, so the size the vector needs to be
                 seed (int): A value to initialise the random number generator
             Returns:
-                random_array (np.ndarray): An array of random numbers the same size as the dot location vector
+                random_array (np.ndarray): An array of random numbers the same
+                    size as the dot location vector
         '''
         rng = np.random.default_rng(seed)
         sigma = self.speckle_data.radius / 2.2
@@ -160,26 +172,29 @@ class Speckle:
 
         return image
 
-    def _colour_count(self, image: np.ndarray) -> float:
-        '''
-        Return proportion of black pixels (with value 0) in image array as a percentage
-            Parameters:
-                image (array): A 2D image array of specified size, containing only pixels of value 0 and 225
-                proportion (float): A float containing the percentage proportion of black (0) in the `image` array
-            Returns:
-                proportion (float): An updated percentage proportion of black in the image array
-        '''
-        count = 0
-        proportion = 0
-        colours, counts = np.unique(image, return_counts=1)
-        for index, colour in enumerate(colours):
-            count = counts[index]
-            all_proportion = (100 * count) / (self.speckle_data.size_x * self.speckle_data.size_y)
-            if colour == 0.0:
-                proportion = round((all_proportion / 100), 3)
-        del(colours, counts)
+def _colour_count(size_x, size_y, image: np.ndarray) -> float:
+    '''
+    Return proportion of black pixels (with value 0) in image array as a percentage
+        Parameters:
+            image (array): A 2D image array of specified size, containing
+                only pixels of value 0 and 225
+            proportion (float): A float containing the percentage proportion
+                of black (0) in the `image` array
+        Returns:
+            proportion (float): An updated percentage proportion of black
+                in the image array
+    '''
+    count = 0
+    proportion = 0
+    colours, counts = np.unique(image, return_counts=1)
+    for index, colour in enumerate(colours):
+        count = counts[index]
+        all_proportion = (100 * count) / (size_x * size_y)
+        if colour == 0.0:
+            proportion = round((all_proportion / 100), 3)
+    del(colours, counts)
 
-        return proportion
+    return proportion
 
 def _px_locations(size_x: int, size_y: int) -> tuple[tuple, np.ndarray, np.ndarray]:
     '''
@@ -246,7 +261,8 @@ def save_image(image: np.ndarray, directory: Path, filename: str, bits: int = Sp
 
 def mean_intensity_gradient(image: np.ndarray) -> tuple[float,float,float]:
     '''
-    Calculates the mean intensity gradient and returns the overall MIG as well as in the x and y directions
+    Calculates the mean intensity gradient and returns the overall MIG
+    as well as in the x and y directions
         Parameters:
             image (np.ndarray): The final image array
         Returns:
