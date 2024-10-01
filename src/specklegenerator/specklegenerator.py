@@ -15,15 +15,15 @@ class SpeckleData:
     '''
     Data class to store default parameters
     '''
-    size_x: int = 100
-    size_y:int = 100
-    radius:int = 5
+    size_x: int = 500
+    size_y:int = 500
+    radius:int = 10
     proportion_goal:float = 0.5
     white_bg:bool = True
     image_res:int = 200
     file_format:FileFormat = FileFormat.TIFF.value
     gauss_blur: float = 1
-    bits: int = 8
+    bits: int = 2
 
 
 class Speckle:
@@ -250,13 +250,24 @@ def save_image(image: np.ndarray, directory: Path, filename: str, bits: int = Sp
     filename_full = filename + '.' + SpeckleData.file_format
     filepath = Path.joinpath(directory, filename_full)
     px = 1/plt.rcParams['figure.dpi']
+    bits_pp = 2**bits - 1
 
-    if bits == 8:
+    if 2 <= bits < 8:
+        image_scaled_down = image / bits_pp
+        relative_scale = 8 - bits
+        image = image_scaled_down.astype(np.uint8)
+        scale_up_factor = 2**(relative_scale + bits) - 1
+        image = np.multiply(image, scale_up_factor)
+    elif bits == 8:
         image = image.astype(np.uint8)
+    elif 8 < bits < 16:
+        image_scaled_down = image / bits_pp
+        relative_scale = 16 - bits
+        image = image_scaled_down.astype(np.uint16)
+        scale_up_factor = 2**(relative_scale + bits) - 1
+        image = np.multiply(image, scale_up_factor)
     elif bits == 16:
         image = image.astype(np.uint16)
-    elif bits == 12:
-        image = image.astype(np.uint8)
     else:
         print('Error: Bit depth added not acceptable')
 
