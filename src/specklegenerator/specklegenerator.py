@@ -15,15 +15,15 @@ class SpeckleData:
     '''
     Data class to store default parameters
     '''
-    size_x: int = 500
-    size_y:int = 500
+    size_x: int = 100
+    size_y:int = 100
     radius:int = 10
     proportion_goal:float = 0.5
     white_bg:bool = True
     image_res:int = 200
     file_format:FileFormat = FileFormat.TIFF.value
     gauss_blur: float = 1
-    bits: int = 2
+    bits: int = 16
 
 
 class Speckle:
@@ -44,12 +44,106 @@ class Speckle:
         self.speckle_data = speckle_data
         self.seed = seed
 
+    def _check_parameters(self):
+        '''
+        Method to check the input parameters of the class to ensure that they are reasonable
+            Returns:
+                bad_parameter (bool): A Boolean value indicating whether class
+                    instance contains a bad parameter or not
+        '''
+        # Sizes
+        bad_parameter = False
+        if not (isinstance(self.speckle_data.size_x, int) and
+              isinstance(self.speckle_data.size_y, int)):
+            print('The image size must be an integer')
+            bad_parameter = True
+        elif self.speckle_data.size_x == 0 or self.speckle_data.size_y == 0:
+            print('The image size cannot be 0, please enter a suitable integer')
+            bad_parameter = True
+        elif self.speckle_data.size_x <0 or self.speckle_data.size_y <0:
+            print('The image size cannot be negative')
+            bad_parameter = True
+        elif (self.speckle_data.size_x <= (self.speckle_data.radius * 1.5) or
+              self.speckle_data.size_y <= (self.speckle_data.radius * 1.5)):
+            print('The image size is too small compared to the speckle radius')
+            bad_parameter = True
+
+
+        # Radius
+        if not isinstance(self.speckle_data.radius, int):
+            print('The radius must be an integer')
+            bad_parameter = True
+        elif self.speckle_data.radius == 0:
+            print('The radius cannot be 0, please enter a suitable integer')
+            bad_parameter = True
+        elif self.speckle_data.radius <0:
+            print('The radius cannot be negative')
+            bad_parameter = True
+        elif (self.speckle_data.radius > (self.speckle_data.size_x / 2) or
+              self.speckle_data.radius > self.speckle_data.size_y / 2):
+            print('The radius is too large compared to the image size')
+            bad_parameter = True
+
+        # Proportion
+        if not isinstance(self.speckle_data.proportion_goal, float):
+            print('The proportion goal must be a float')
+            bad_parameter = True
+        elif  (self.speckle_data.proportion_goal < 0.0 or
+               self.speckle_data.proportion_goal > 1.0):
+            print('The proportion goal must be between 0 and 1')
+            bad_parameter = True
+        elif self.speckle_data.proportion_goal == 0.0:
+            print('The proportion goal cannot be 0')
+            bad_parameter = True
+        elif self.speckle_data.proportion_goal == 1.0:
+            print('The proportion goal cannot be 1')
+            bad_parameter = True
+
+        # White bg
+        if not isinstance(self.speckle_data.white_bg, bool):
+            print('The white background parameter must be a Boolean')
+            bad_parameter = True
+
+        # Image resolution
+        if not isinstance(self.speckle_data.image_res, int):
+            print('The image resolution must be an integer')
+            bad_parameter = True
+        elif  self.speckle_data.image_res < 0.0:
+            print('The image resolution cannot be negative')
+            bad_parameter = True
+        elif self.speckle_data.image_res == 0.0:
+            print('The image resolution cannot be 0')
+            bad_parameter = True
+
+        # File format
+        if not isinstance(self.speckle_data.file_format, FileFormat):
+            print('The file format has to be the value of an enum, defined in the FileFormat class')
+            bad_parameter = True
+
+        # Bits
+        if not isinstance(self.speckle_data.bits, int):
+            print('The bit size must be an integer')
+            bad_parameter = True
+        elif  self.speckle_data.bits < 2:
+            print('The bit size cannot be smaller than 2')
+            bad_parameter = True
+        elif self.speckle_data.bits > 16:
+            print('The bit size cannot be larger than 16')
+            bad_parameter = True
+
+        return bad_parameter
+
+
     def make(self) -> np.ndarray:
         '''
         Produces a random speckle pattern with given parameters
             Returns:
                 image (np.ndarray): An image array containing a speckle pattern
         '''
+        bad_parameter = self._check_parameters()
+        if bad_parameter == True:
+            return
+
         num_dots_x, num_dots_y, n_tot = self._optimal_dot_number()
         x_dot_2d, y_dot_2d = self._dot_locations(num_dots_x, num_dots_y, n_tot)
         grid_shape, x_px_trans, y_px_trans = _px_locations(self.speckle_data.size_x,
@@ -68,7 +162,7 @@ class Speckle:
         del(x_dot_same_dim, x_px_same_dim, y_dot_same_dim, y_px_same_dim)
 
         image = np.zeros_like(dist)
-        image = self._threshold_image(image, dist)
+        image = _threshold_image(self.speckle_data.radius, image, dist)
         del(dist)
 
         # image = gaussian_filter(image, self.speckle_data.gauss_blur)
@@ -153,16 +247,16 @@ class Speckle:
 
         return (x_dot_2d, y_dot_2d)
 
-    def _threshold_image(self, image: np.ndarray, dist: np.ndarray) -> np.ndarray:
-        grey_threshold = self.speckle_data.radius + 0.5
-        image[dist < grey_threshold] = 0.2
-        grey_threshold -= 0.1
-        image[dist < grey_threshold] = 0.5
-        grey_threshold -= 0.1
-        image[dist < grey_threshold] = 0.8
-        image[dist < self.speckle_data.radius] = 1
+def _threshold_image(radius: int, image: np.ndarray, dist: np.ndarray) -> np.ndarray:
+    grey_threshold = radius + 0.5
+    image[dist <= grey_threshold] = 0.2
+    grey_threshold -= 0.1
+    image[dist <= grey_threshold] = 0.5
+    grey_threshold -= 0.1
+    image[dist <= grey_threshold] = 0.8
+    image[dist <= radius] = 1
 
-        return image
+    return image
 
 def _random_location(seed: int | None, radius: int, n_tot: int) -> np.ndarray:
         '''
