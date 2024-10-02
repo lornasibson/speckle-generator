@@ -53,18 +53,20 @@ class Speckle:
         '''
         # Sizes
         bad_parameter = False
+        print(type(self.speckle_data.file_format))
         if not (isinstance(self.speckle_data.size_x, int) and
               isinstance(self.speckle_data.size_y, int)):
             print('The image size must be an integer')
             bad_parameter = True
+            return bad_parameter
         elif self.speckle_data.size_x == 0 or self.speckle_data.size_y == 0:
             print('The image size cannot be 0, please enter a suitable integer')
             bad_parameter = True
         elif self.speckle_data.size_x <0 or self.speckle_data.size_y <0:
             print('The image size cannot be negative')
             bad_parameter = True
-        elif (self.speckle_data.size_x <= (self.speckle_data.radius * 1.5) or
-              self.speckle_data.size_y <= (self.speckle_data.radius * 1.5)):
+        elif (self.speckle_data.size_x <= 20 or
+              self.speckle_data.size_y <= 20):
             print('The image size is too small compared to the speckle radius')
             bad_parameter = True
 
@@ -73,6 +75,7 @@ class Speckle:
         if not isinstance(self.speckle_data.radius, int):
             print('The radius must be an integer')
             bad_parameter = True
+            return bad_parameter
         elif self.speckle_data.radius == 0:
             print('The radius cannot be 0, please enter a suitable integer')
             bad_parameter = True
@@ -88,6 +91,7 @@ class Speckle:
         if not isinstance(self.speckle_data.proportion_goal, float):
             print('The proportion goal must be a float')
             bad_parameter = True
+            return bad_parameter
         elif  (self.speckle_data.proportion_goal < 0.0 or
                self.speckle_data.proportion_goal > 1.0):
             print('The proportion goal must be between 0 and 1')
@@ -108,6 +112,7 @@ class Speckle:
         if not isinstance(self.speckle_data.image_res, int):
             print('The image resolution must be an integer')
             bad_parameter = True
+            return bad_parameter
         elif  self.speckle_data.image_res < 0.0:
             print('The image resolution cannot be negative')
             bad_parameter = True
@@ -115,15 +120,16 @@ class Speckle:
             print('The image resolution cannot be 0')
             bad_parameter = True
 
-        # File format
-        if not isinstance(self.speckle_data.file_format, FileFormat):
-            print('The file format has to be the value of an enum, defined in the FileFormat class')
-            bad_parameter = True
+        # # File format
+        # if not isinstance(self.speckle_data.file_format, FileFormat):
+        #     print('The file format has to be the value of an enum, defined in the FileFormat class')
+        #     bad_parameter = True
 
         # Bits
         if not isinstance(self.speckle_data.bits, int):
             print('The bit size must be an integer')
             bad_parameter = True
+            return bad_parameter
         elif  self.speckle_data.bits < 2:
             print('The bit size cannot be smaller than 2')
             bad_parameter = True
@@ -133,7 +139,6 @@ class Speckle:
 
         return bad_parameter
 
-
     def make(self) -> np.ndarray:
         '''
         Produces a random speckle pattern with given parameters
@@ -141,7 +146,7 @@ class Speckle:
                 image (np.ndarray): An image array containing a speckle pattern
         '''
         bad_parameter = self._check_parameters()
-        if bad_parameter == True:
+        if bad_parameter is True:
             return
 
         num_dots_x, num_dots_y, n_tot = self._optimal_dot_number()
