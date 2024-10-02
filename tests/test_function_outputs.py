@@ -157,6 +157,20 @@ def test_threshold_image():
 
     assert image_output == pytest.approx(correct_image)
 
+def test_colour_switch():
+    image = np.array([[0, 0, 0, 0], [0.5, 0.5, 0.5, 0.5],
+                      [1, 1, 1, 1], [0.8, 0.8, 0.8, 0.8]])
+
+    correct_output = np.array([[1, 1, 1, 1], [0.5, 0.5, 0.5, 0.5],
+                               [0, 0, 0, 0], [0.2, 0.2, 0.2, 0.2]])
+
+    image_switch = image * -1 + 1
+
+    assert image_switch == pytest.approx(correct_output)
+
+
+
+
 
 
 
