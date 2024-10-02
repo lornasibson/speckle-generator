@@ -7,7 +7,8 @@ from specklegenerator.specklegenerator import (Speckle,
                                                _random_location,
                                                _px_locations,
                                                save_image,
-                                               _colour_count)
+                                               _colour_count,
+                                               _threshold_image)
 
 @pytest.fixture(autouse=True)
 def setup_teardown():
@@ -65,27 +66,48 @@ def test_random_location():
 
     assert random_array == pytest.approx(random_locations)
 
-def test_px_locations(): # FIX
-    size_x = 10
-    size_y = 10
+def test_px_locations():
+    size_x = 4
+    size_y = 4
 
     grid_shape, x_px_trans, y_px_trans = _px_locations(size_x, size_y)
 
-    x_px = np.array([[0.5],[1.5],[2.5],[3.5],[4.5],[5.5],[6.5],[7.5],[8.5],[9.5],
-                     [0.5],[1.5],[2.5],[3.5],[4.5],[5.5],[6.5],[7.5],[8.5],[9.5],
-                     [0.5],[1.5],[2.5],[3.5],[4.5],[5.5],[6.5],[7.5],[8.5],[9.5],
-                     [0.5],[1.5],[2.5],[3.5],[4.5],[5.5],[6.5],[7.5],[8.5],[9.5],
-                     [0.5],[1.5],[2.5],[3.5],[4.5],[5.5],[6.5],[7.5],[8.5],[9.5],
-                     [0.5],[1.5],[2.5],[3.5],[4.5],[5.5],[6.5],[7.5],[8.5],[9.5],
-                     [0.5],[1.5],[2.5],[3.5],[4.5],[5.5],[6.5],[7.5],[8.5],[9.5],
-                     [0.5],[1.5],[2.5],[3.5],[4.5],[5.5],[6.5],[7.5],[8.5],[9.5],
-                     [0.5],[1.5],[2.5],[3.5],[4.5],[5.5],[6.5],[7.5],[8.5],[9.5],
-                     [0.5],[1.5],[2.5],[3.5],[4.5],[5.5],[6.5],[7.5],[8.5],[9.5]])
-    y_px = x_px
+    x_px = np.array([[0.5],
+       [1.5],
+       [2.5],
+       [3.5],
+       [0.5],
+       [1.5],
+       [2.5],
+       [3.5],
+       [0.5],
+       [1.5],
+       [2.5],
+       [3.5],
+       [0.5],
+       [1.5],
+       [2.5],
+       [3.5]])
+    y_px = np.array([[0.5],
+       [0.5],
+       [0.5],
+       [0.5],
+       [1.5],
+       [1.5],
+       [1.5],
+       [1.5],
+       [2.5],
+       [2.5],
+       [2.5],
+       [2.5],
+       [3.5],
+       [3.5],
+       [3.5],
+       [3.5]])
 
-    assert grid_shape == (10, 10)
-    # assert x_px_trans == pytest.approx(x_px)
-    # assert y_px_trans == pytest.approx(y_px)
+    assert grid_shape == (4, 4)
+    assert x_px_trans == pytest.approx(x_px)
+    assert y_px_trans == pytest.approx(y_px)
 
 def test_save_image():
     filename = 'save_image_test'
@@ -113,6 +135,31 @@ def test_colour_count():
     proportion = _colour_count(size_x, size_y, image)
 
     assert proportion == 0.5
+
+def test_threshold_image():
+    radius = 5
+    dist = np.array([10, 7.5, 7, 6, 5.5, 5.4, 5.3, 5.2, 5, 4])
+
+    image = np.zeros((10, 10))
+
+    correct_image = np.array([[0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+       [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+       [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+       [0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. , 0. ],
+       [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2],
+       [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
+       [0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
+       [0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
+       [1. , 1. , 1. , 1. , 1. , 1. , 1. , 1. , 1. , 1. ],
+       [1. , 1. , 1. , 1. , 1. , 1. , 1. , 1. , 1. , 1. ]])
+
+    image_output = _threshold_image(radius, image, dist)
+
+    assert image_output == pytest.approx(correct_image)
+
+
+
+
 
 
 
