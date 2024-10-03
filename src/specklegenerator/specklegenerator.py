@@ -27,8 +27,8 @@ class SpeckleData:
             file_format (enum): A string of the desired file format of the saved file
             bits (int): An integer value of the bit size of the image
     '''
-    size_x: int = 100
-    size_y:int = 100
+    size_x: int = 500
+    size_y:int = 500
     radius:int = 10
     proportion_goal:float = 0.5
     white_bg:bool = True
