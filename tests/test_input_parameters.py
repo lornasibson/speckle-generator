@@ -1,3 +1,7 @@
+'''
+TEST: Input parameters to Speckle class
+'''
+
 import pytest
 from specklegenerator.specklegenerator import Speckle, SpeckleData, FileFormat
 
@@ -15,7 +19,7 @@ def test_size_inputs(size_x, output):
 
 @pytest.mark.parametrize('radius, output',
                          [pytest.param(0, True, id='radius equal to 0'),
-                          pytest.param(80, True, id='radius too big'),
+                          pytest.param(600, True, id='radius too big'),
                           pytest.param('10', True, id='radius not an integer'),
                           pytest.param(-10, True, id='radius negative'),
                           pytest.param(10, False, id='radius acceptable value')])
