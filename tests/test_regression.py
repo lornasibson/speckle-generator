@@ -7,7 +7,7 @@ from specklegenerator.specklegenerator import Speckle, SpeckleData, FileFormat
 def test_happy_speckle():
     seed = 8
     data = SpeckleData(size_x=100, size_y=100, radius=5, proportion_goal=0.5,
-                white_bg=True, image_res=200, file_format=FileFormat.TIFF.value,
+                white_bg=True, image_res=200, file_format=FileFormat.TIFF,
                   bits=8)
     speckler = Speckle(data, seed)
     image = speckler.make()
