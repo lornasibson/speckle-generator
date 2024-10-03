@@ -1,6 +1,10 @@
+'''
+TEST: Function outputs in specklegenerator.py
+'''
 import os
 from pathlib import Path
 import pytest
+from PIL import Image
 import numpy as np
 from specklegenerator.specklegenerator import (Speckle,
                                                SpeckleData,
@@ -166,6 +170,43 @@ def test_colour_switch():
     image_switch = image * -1 + 1
 
     assert image_switch == pytest.approx(correct_output)
+
+
+@pytest.mark.parametrize('bits, output',
+                         [pytest.param(2, (2**2 - 1), id='bits = 2'),
+                          pytest.param(4, (2**4 - 1), id='bits = 4'),
+                          pytest.param(8, (2**8 - 1), id='bits = 8'),
+                          pytest.param(12, (2**12 - 1), id='bits = 12'),
+                          pytest.param(16, (2**16 - 1), id='bits = 16')])
+def test_bit_size_generated_image(bits, output):
+    data = SpeckleData(bits=bits)
+    speckle = Speckle(data)
+    image = speckle.make()
+    bit_size = np.max(image)
+    assert bit_size == output
+
+@pytest.mark.parametrize('bits, output',
+                         [pytest.param(2, np.uint8, id='bits = 2'),
+                          pytest.param(4, np.uint8, id='bits = 4'),
+                          pytest.param(8, np.uint8, id='bits = 8'),
+                          pytest.param(12, np.uint16, id='bits = 12'),
+                          pytest.param(16, np.uint16, id='bits = 16')])
+def test_bit_size_saved_image(bits, output):
+    data = SpeckleData(bits=bits)
+    speckle = Speckle(data)
+    image = speckle.make()
+    directory = Path.cwd() / "images"
+    filename = 'test_bit_size'
+    save_image(image, directory, filename, bits)
+
+    saved_image = Image.open('/home/lorna/speckle_generator/images/test_bit_size.tiff')
+    saved_image_array = np.asarray(saved_image)
+
+    bit_size = saved_image_array.dtype
+
+    assert bit_size == output
+
+
 
 
 
