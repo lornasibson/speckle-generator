@@ -30,25 +30,24 @@ def test_optimal_dot_number():
     assert num_dots_y == 8
     assert n_tot == 64
 
-def test_dot_locations(): # NEED TO FIX
+def test_dot_locations():
     seed = 5
-    data = SpeckleData(size_x=10, size_y=10)
+    data = SpeckleData(size_x=10, size_y=10, radius=1)
     speckler = Speckle(data, seed)
     x_dot_2d, y_dot_2d = speckler._dot_locations(4, 4, 16)
 
-    dot_location_x = np.array([1.25, 3.75, 6.25, 8.75])
-    dot_location_y = np.array([1.25, 3.75, 6.25, 8.75])
-    dot_x_grid, dot_y_grid = np.meshgrid(dot_location_x, dot_location_y)
-    x_dot_vec = dot_x_grid.flatten()
-    y_dot_vec = dot_y_grid.flatten()
+    dot_x_vec = np.array([1.25, 3.75, 6.25, 8.75, 1.25, 3.75, 6.25, 8.75,
+                           1.25, 3.75, 6.25, 8.75, 1.25, 3.75, 6.25, 8.75])
+    dot_y_vec = np.array([1.25, 1.25, 1.25, 1.25, 3.75, 3.75, 3.75, 3.75,
+                          6.25, 6.25, 6.25, 6.25, 8.75, 8.75, 8.75, 8.75])
     random_array = _random_location(seed, 1, 16)
-    random_dots_x = np.add(x_dot_vec, random_array)
-    random_dots_y = np.add(y_dot_vec, random_array)
+    random_dots_x = np.add(dot_x_vec, random_array)
+    random_dots_y = np.add(dot_y_vec, random_array)
     random_dots_2d_x = np.atleast_2d(random_dots_x)
     random_dots_2d_y = np.atleast_2d(random_dots_y)
 
-    # assert x_dot_2d == pytest.approx(random_dots_2d_x)
-    # assert y_dot_2d == pytest.approx(random_dots_2d_y)
+    assert x_dot_2d == pytest.approx(random_dots_2d_x)
+    assert y_dot_2d == pytest.approx(random_dots_2d_y)
 
 def test_random_location():
     seed = 5
