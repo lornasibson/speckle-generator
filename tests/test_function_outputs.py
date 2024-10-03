@@ -118,7 +118,7 @@ def test_save_image():
 
     save_image(image, directory, filename)
 
-    filename_full = filename + '.' + data.file_format
+    filename_full = filename + '.' + data.file_format.value
     all_files = os.listdir(directory)
     test_file = ''
     for ff in all_files:
