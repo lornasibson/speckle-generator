@@ -21,7 +21,7 @@ class SpeckleData:
     proportion_goal:float = 0.5
     white_bg:bool = True
     image_res:int = 200
-    file_format:FileFormat = FileFormat.TIFF.value
+    file_format:FileFormat = FileFormat.TIFF
     gauss_blur: float = 1
     bits: int = 16
 
@@ -53,7 +53,6 @@ class Speckle:
         '''
         # Sizes
         bad_parameter = False
-        print(type(self.speckle_data.file_format))
         if not (isinstance(self.speckle_data.size_x, int) and
               isinstance(self.speckle_data.size_y, int)):
             print('The image size must be an integer')
@@ -120,10 +119,10 @@ class Speckle:
             print('The image resolution cannot be 0')
             bad_parameter = True
 
-        # # File format
-        # if not isinstance(self.speckle_data.file_format, FileFormat):
-        #     print('The file format has to be the value of an enum, defined in the FileFormat class')
-        #     bad_parameter = True
+        # File format
+        if not isinstance(self.speckle_data.file_format, FileFormat):
+            print('The file format has to be an enum, defined in the FileFormat class')
+            bad_parameter = True
 
         # Bits
         if not isinstance(self.speckle_data.bits, int):
@@ -346,7 +345,7 @@ def save_image(image: np.ndarray, directory: Path, filename: str, bits: int = Sp
         Parameters:
             image (arrray): A 2D array to be plotted
     '''
-    filename_full = filename + '.' + SpeckleData.file_format
+    filename_full = filename + '.' + SpeckleData.file_format.value
     filepath = Path.joinpath(directory, filename_full)
     px = 1/plt.rcParams['figure.dpi']
     bits_pp = 2**bits - 1
@@ -372,7 +371,7 @@ def save_image(image: np.ndarray, directory: Path, filename: str, bits: int = Sp
 
     tiff_image = Image.fromarray(image)
     res = SpeckleData.image_res
-    tiff_image.save(filepath, SpeckleData.file_format, dpi=(res, res))
+    tiff_image.save(filepath, SpeckleData.file_format.value, dpi=(res, res))
 
 def mean_intensity_gradient(image: np.ndarray) -> tuple[float,float,float]:
     '''
