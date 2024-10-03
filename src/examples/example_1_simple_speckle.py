@@ -18,7 +18,7 @@ def main() -> None:
     - Image displayed on screen
     - Image saved to specifed filename in specified location
     '''
-    filename = 'speckle_16_bit'
+    filename = 'speckle_large'
     directory = Path.cwd() / "images"
     speckle_data = SpeckleData()
 
@@ -26,8 +26,8 @@ def main() -> None:
 
     speckle = Speckle(speckle_data)
     image = speckle.make()
-    # show_image(image)
-    # save_image(image, directory, filename)
+    show_image(image)
+    save_image(image, directory, filename)
     # mean_intensity_gradient(image)
 
 if __name__ == '__main__':
