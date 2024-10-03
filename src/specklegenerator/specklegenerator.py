@@ -29,7 +29,7 @@ class SpeckleData:
     '''
     size_x: int = 500
     size_y:int = 500
-    radius:int = 10
+    radius:int = 7
     proportion_goal:float = 0.5
     white_bg:bool = True
     image_res:int = 200
