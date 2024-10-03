@@ -62,6 +62,15 @@ def test_image_res_inputs(image_res, output):
 
     assert bad_parameter == output
 
+@pytest.mark.parametrize('file_format, output',
+                         [pytest.param('tiff', True, id='non-enum value'),
+                          pytest.param(FileFormat.TIFF, False, id='file format correct')])
+def test_file_format_inputs(file_format, output):
+    data = SpeckleData(file_format=file_format)
+    speckle = Speckle(data)
+    bad_parameter = speckle._check_parameters()
+    assert bad_parameter == output
+
 @pytest.mark.parametrize('bits, output',
                          [pytest.param(1, True, id='bit size less than 2'),
                           pytest.param(18, True, id='bit size great than 16'),
