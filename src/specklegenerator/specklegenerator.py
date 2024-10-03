@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter
 
 class FileFormat(Enum):
+    '''
+    Enum class to restrict the allowable output file formats
+    '''
     TIFF = 'tiff'
     BITMAP = 'bmp'
 
@@ -14,6 +17,15 @@ class FileFormat(Enum):
 class SpeckleData:
     '''
     Data class to store default parameters
+    Parameters:
+            size_x (int): An integer value of the horizontal size of speckle image in pixels
+            size_y (int): An integer value of the vertical size of speckle image in pixels
+            radius (int): An integer value of the radius of circles used in the speckle pattern
+            proportion_goal (int): An integer value of the desired black/white balance as a percentage
+            white_bg (bool): A Boolean value for whether a white or black background is wanted
+            image_res (int): An integer value of the desired image resolution in dpi
+            file_format (enum): A string of the desired file format of the saved file
+            bits (int): An integer value of the bit size of the image
     '''
     size_x: int = 100
     size_y:int = 100
@@ -29,14 +41,6 @@ class SpeckleData:
 class Speckle:
     '''
     A class to generate, show and save a speckle pattern subject to input parameters
-        Parameters:
-            size_x (int): An integer value of the horizontal size of speckle image in pixels
-            size_y (int): An integer value of the vertical size of speckle image in pixels
-            radius (int): An integer value of the radius of circles used in the speckle pattern
-            proportion_goal (int): An integer value of the desired black/white balance as a percentage
-            file_format (str): A string of the desired file format of the saved file
-            white_bg (bool): A Boolean value for whether a white or black background is wanted
-            image_res (int): An integer value of the desired image resolution in dpi
     '''
     def __init__(self,
                  speckle_data: SpeckleData,
@@ -246,12 +250,23 @@ class Speckle:
         del(x_dot_vec, y_dot_vec)
         x_dot_2d = np.atleast_2d(x_dot_random)
         y_dot_2d = np.atleast_2d((y_dot_random))
-
         del(x_dot_random, y_dot_random)
 
         return (x_dot_2d, y_dot_2d)
 
 def _threshold_image(radius: int, image: np.ndarray, dist: np.ndarray) -> np.ndarray:
+    '''
+    Takes an image and adds dots in a contrasting colour
+    Different grey levels are added between the background and dots to reduce the
+    spatial frequency
+        Parameters:
+            radius (int): The radius of the dots added
+            image (np.ndarray): The image array to which the dots are added
+            dist (np.ndarray): An array of distances from each pixel centre to
+                each dot centre
+        Returns:
+            image (np.ndarray): The image array with dots added
+    '''
     grey_threshold = radius + 0.5
     image[dist <= grey_threshold] = 0.2
     grey_threshold -= 0.1
