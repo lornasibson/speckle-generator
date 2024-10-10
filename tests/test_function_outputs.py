@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 from PIL import Image
 import numpy as np
+import numpy.testing as npt
 from specklegenerator.specklegenerator import (
     Speckle,
     SpeckleData,
@@ -92,9 +93,8 @@ def test_dot_locations():
     random_dots_2d_x = np.atleast_2d(random_dots_x)
     random_dots_2d_y = np.atleast_2d(random_dots_y)
 
-    assert x_dot_2d == pytest.approx(random_dots_2d_x)
-    assert y_dot_2d == pytest.approx(random_dots_2d_y)
-
+    npt.assert_array_equal(x_dot_2d, random_dots_2d_x)
+    npt.assert_array_equal(y_dot_2d, random_dots_2d_y)
 
 def test_random_location():
     seed = 5
@@ -124,7 +124,7 @@ def test_random_location():
         ]
     )
 
-    assert random_array == pytest.approx(random_locations)
+    npt.assert_array_equal(random_array, random_locations)
 
 
 def test_px_locations():
@@ -175,8 +175,8 @@ def test_px_locations():
     )
 
     assert grid_shape == (4, 4)
-    assert x_px_trans == pytest.approx(x_px)
-    assert y_px_trans == pytest.approx(y_px)
+    npt.assert_array_equal(x_px_trans, x_px)
+    npt.assert_array_equal(y_px_trans, y_px)
 
 
 def test_save_image():
