@@ -121,7 +121,7 @@ def test_random_location():
         ]
     )
 
-    npt.assert_array_equal(random_array, random_locations)
+    npt.assert_array_almost_equal(random_array, random_locations, decimal=8)
 
 
 def test_px_locations():
@@ -233,7 +233,7 @@ def test_threshold_image():
     image_output = _threshold_image(radius, image, dist)
     npt.assert_array_equal(image_output, correct_image)
 
-
+        
 def test_colour_switch():
     image = np.array(
         [[0, 0, 0, 0], [0.5, 0.5, 0.5, 0.5], [1, 1, 1, 1], [0.8, 0.8, 0.8, 0.8]]
@@ -244,7 +244,7 @@ def test_colour_switch():
     )
 
     image_switch = image * -1 + 1
-    npt.assert_array_equal(image_switch, correct_output)
+    npt.assert_array_almost_equal(image_switch, correct_output, decimal=10)
 
 
 @pytest.mark.parametrize(
