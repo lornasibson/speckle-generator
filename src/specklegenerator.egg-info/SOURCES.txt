@@ -1,0 +1,11 @@
+LICENSE
+README.md
+pyproject.toml
+src/examples/example_1_simple_speckle.py
+src/specklegenerator/__init__.py
+src/specklegenerator/specklegenerator.py
+src/specklegenerator.egg-info/PKG-INFO
+src/specklegenerator.egg-info/SOURCES.txt
+src/specklegenerator.egg-info/dependency_links.txt
+src/specklegenerator.egg-info/requires.txt
+src/specklegenerator.egg-info/top_level.txt
