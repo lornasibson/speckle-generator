@@ -5,6 +5,7 @@ TEST: Regression test for Speckle class
 import pytest
 from PIL import Image
 import numpy as np
+import numpy.testing as npt
 from specklegenerator.specklegenerator import Speckle, SpeckleData, FileFormat
 
 
@@ -29,7 +30,7 @@ def test_happy_speckle():
     )
     ref_image_array = np.asarray(ref_image)
 
-    assert image == pytest.approx(ref_image_array)
+    npt.assert_array_equal(image, ref_image_array)
 
 
 def test_unhappy_speckle():
@@ -53,4 +54,6 @@ def test_unhappy_speckle():
     )
     ref_image_array = np.asarray(ref_image)
 
-    assert image != pytest.approx(ref_image_array)
+    with npt.assert_raises(AssertionError):
+       npt.assert_array_equal(image, ref_image_array)
+
