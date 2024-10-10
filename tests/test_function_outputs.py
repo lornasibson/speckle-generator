@@ -230,8 +230,7 @@ def test_threshold_image():
     )
 
     image_output = _threshold_image(radius, image, dist)
-
-    assert image_output == pytest.approx(correct_image)
+    npt.assert_array_equal(image_output, correct_image)
 
 
 def test_colour_switch():
@@ -244,8 +243,7 @@ def test_colour_switch():
     )
 
     image_switch = image * -1 + 1
-
-    assert image_switch == pytest.approx(correct_output)
+    npt.assert_array_equal(image_switch, correct_output)
 
 
 @pytest.mark.parametrize(
