@@ -33,7 +33,7 @@ class SpeckleData:
 
     size_x: int = 500
     size_y: int = 500
-    radius: int = 7
+    radius: int = 10
     proportion_goal: float = 0.5
     white_bg: bool = True
     image_res: int = 200
@@ -51,7 +51,7 @@ class Speckle:
         self.speckle_data = speckle_data
         self.seed = seed
 
-    def _check_parameters(self):
+    def _check_parameters(self) -> bool:
         """
         Method to check the input parameters of the class to ensure that they are reasonable
             Returns:
@@ -155,10 +155,6 @@ class Speckle:
             Returns:
                 image (np.ndarray): An image array containing a speckle pattern
         """
-        bad_parameter = self._check_parameters()
-        if bad_parameter is True:
-            return
-
         num_dots_x, num_dots_y, n_tot = self._optimal_dot_number()
         x_dot_2d, y_dot_2d = self._dot_locations(num_dots_x, num_dots_y, n_tot)
         grid_shape, x_px_trans, y_px_trans = _px_locations(
