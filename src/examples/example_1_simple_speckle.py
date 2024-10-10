@@ -8,6 +8,7 @@ from specklegenerator.specklegenerator import (
     SpeckleData,
     show_image,
     save_image,
+    mean_intensity_gradient,
 )
 # mean_intensity_gradient)
 
@@ -25,10 +26,14 @@ def main() -> None:
     speckle_data = SpeckleData()
 
     speckle = Speckle(speckle_data)
-    image = speckle.make()
-    show_image(image)
-    save_image(image, directory, filename)
-    # mean_intensity_gradient(image)
+    bad_parameter = speckle._check_parameters()
+    if bad_parameter is True:
+        print('An unsuitable input parameter has be chosen, so the programme cannot run')
+    else:
+        image = speckle.make()
+        show_image(image)
+        # save_image(image, directory, filename)
+        # mean_intensity_gradient(image)
 
 
 if __name__ == "__main__":
