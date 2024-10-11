@@ -3,12 +3,14 @@ example: generating a simple speckle pattern
 """
 
 from pathlib import Path
+import numpy as np
 from specklegenerator.specklegenerator import (
     Speckle,
     SpeckleData,
     show_image,
     save_image,
     mean_intensity_gradient,
+    _colour_count,
 )
 # mean_intensity_gradient)
 
@@ -21,19 +23,22 @@ def main() -> None:
     - Image displayed on screen
     - Image saved to specifed filename in specified location
     """
-    filename = "speckle_large"
+    filename = "speckle_bg"
     directory = Path.cwd() / "images"
-    speckle_data = SpeckleData()
+    speckle_data = SpeckleData(size_x=500,
+                               size_y=500,
+                               radius=10,
+                               b_w_ratio=0.75,
+                               white_bg=False,
+                               bits=8,
+                               )
 
     speckle = Speckle(speckle_data)
-    bad_parameter = speckle._check_parameters()
-    if bad_parameter is True:
-        print('An unsuitable input parameter has be chosen, so the programme cannot run')
-    else:
-        image = speckle.make()
-        show_image(image)
-        # save_image(image, directory, filename)
-        # mean_intensity_gradient(image)
+
+    image = speckle.make()
+    print(f"{mean_intensity_gradient(image)=}")
+    save_image(image, directory, filename, bits=speckle_data.bits)
+
 
 
 if __name__ == "__main__":

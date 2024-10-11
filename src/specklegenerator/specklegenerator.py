@@ -25,7 +25,7 @@ class SpeckleData:
             size_x (int): An integer value of the horizontal size of speckle image in pixels
             size_y (int): An integer value of the vertical size of speckle image in pixels
             radius (int): An integer value of the radius of circles used in the speckle pattern
-            proportion_goal (int): An integer value of the desired black/white balance as a percentage
+            b_w_ratio (int): An integer value of the desired black/white balance as a percentage
             white_bg (bool): A Boolean value for whether a white or black background is wanted
             image_res (int): An integer value of the desired image resolution in dpi
             file_format (enum): A string of the desired file format of the saved file
@@ -35,7 +35,7 @@ class SpeckleData:
     size_x: int = 500
     size_y: int = 500
     radius: int = 10
-    proportion_goal: float = 0.5
+    b_w_ratio: float = 0.5
     white_bg: bool = True
     image_res: int = 200
     file_format: FileFormat = FileFormat.TIFF
@@ -72,13 +72,13 @@ def validate_speckle_data(speckle_data: SpeckleData) -> None:
 
     # Proportion
     if (
-        speckle_data.proportion_goal < 0.0
-        or speckle_data.proportion_goal > 1.0
+        speckle_data.b_w_ratio < 0.0
+        or speckle_data.b_w_ratio > 1.0
     ):
         raise SpeckleError("The proportion goal must be between 0 and 1")
-    elif speckle_data.proportion_goal == 0.0:
+    elif speckle_data.b_w_ratio == 0.0:
         raise SpeckleError("The proportion goal cannot be 0")
-    elif speckle_data.proportion_goal == 1.0:
+    elif speckle_data.b_w_ratio == 1.0:
         raise SpeckleError("The proportion goal cannot be 1")
 
     # Image resolution
@@ -172,7 +172,7 @@ class Speckle:
                 n_tot (int): The total number of dots
         """
         number_dots = (
-            self.speckle_data.proportion_goal
+            self.speckle_data.b_w_ratio
             * self.speckle_data.size_x
             * self.speckle_data.size_y
         ) / (np.pi * self.speckle_data.radius**2)
