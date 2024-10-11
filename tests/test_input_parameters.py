@@ -51,8 +51,8 @@ def test_radius_inputs(radius, output):
         pytest.param(0.5, False, id="prop goal acceptable value"),
     ],
 )
-def test_proportion_goal_inputs(prop_goal, output):
-    data = SpeckleData(proportion_goal=prop_goal)
+def test_b_w_ratio_inputs(prop_goal, output):
+    data = SpeckleData(b_w_ratio=prop_goal)
     speckle = Speckle(data)
     bad_parameter = speckle._check_parameters()
     assert bad_parameter == output

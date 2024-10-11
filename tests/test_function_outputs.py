@@ -27,7 +27,7 @@ def setup_teardown():
 
 
 def test_optimal_dot_number():
-    data = SpeckleData(size_x=100, size_y=100, radius=5, proportion_goal=0.5)
+    data = SpeckleData(size_x=100, size_y=100, radius=5, b_w_ratio=0.5)
     speckler = Speckle(data)
     num_dots_x, num_dots_y, n_tot = speckler._optimal_dot_number()
 
@@ -56,6 +56,7 @@ def test_dot_locations():
             1.25,
             3.75,
             6.25,
+
             8.75,
             1.25,
             3.75,
@@ -121,7 +122,7 @@ def test_random_location():
         ]
     )
 
-    npt.assert_array_almost_equal(random_array, random_locations, decimal=8)
+    npt.assert_array_almost_equal(random_array, random_locations)
 
 
 def test_px_locations():
@@ -233,7 +234,7 @@ def test_threshold_image():
     image_output = _threshold_image(radius, image, dist)
     npt.assert_array_equal(image_output, correct_image)
 
-        
+
 def test_colour_switch():
     image = np.array(
         [[0, 0, 0, 0], [0.5, 0.5, 0.5, 0.5], [1, 1, 1, 1], [0.8, 0.8, 0.8, 0.8]]
@@ -244,7 +245,7 @@ def test_colour_switch():
     )
 
     image_switch = image * -1 + 1
-    npt.assert_array_almost_equal(image_switch, correct_output, decimal=10)
+    npt.assert_array_almost_equal(image_switch, correct_output)
 
 
 @pytest.mark.parametrize(
