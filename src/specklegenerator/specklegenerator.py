@@ -4,8 +4,10 @@ from enum import Enum
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
-# from scipy.ndimage import gaussian_filter
+from scipy.ndimage import gaussian_filter
 
+class SpeckleError(Exception):
+    pass
 
 class FileFormat(Enum):
     """
@@ -14,7 +16,6 @@ class FileFormat(Enum):
 
     TIFF = "tiff"
     BITMAP = "bmp"
-
 
 @dataclass
 class SpeckleData:
@@ -38,8 +39,65 @@ class SpeckleData:
     white_bg: bool = True
     image_res: int = 200
     file_format: FileFormat = FileFormat.TIFF
-    gauss_blur: float = 1
+    gauss_blur: float | None = None
     bits: int = 16
+
+
+def validate_speckle_data(speckle_data: SpeckleData) -> None:
+    """
+
+    Method to check the input parameters of the class to ensure that they are reasonable
+        Returns:
+            bad_parameter (bool): A Boolean value indicating whether class
+                instance contains a bad parameter or not
+    """
+    # Sizes
+    if speckle_data.size_x == 0 or speckle_data.size_y == 0:
+        raise SpeckleError("The image size cannot be 0, please enter a suitable integer")
+    elif speckle_data.size_x < 0 or speckle_data.size_y < 0:
+        raise SpeckleError("The image size cannot be negative")
+    elif speckle_data.size_x <= 20 or speckle_data.size_y <= 20:
+        raise SpeckleError("The image size is too small compared to the speckle radius")
+
+    # Radius
+    if speckle_data.radius == 0:
+        raise SpeckleError("The radius cannot be 0, please enter a suitable integer")
+    elif speckle_data.radius < 0:
+        raise SpeckleError("The radius cannot be negative")
+    elif (
+        speckle_data.radius > (speckle_data.size_x / 2)
+        or speckle_data.radius > speckle_data.size_y / 2
+    ):
+        raise SpeckleError("The radius is too large compared to the image size")
+
+    # Proportion
+    if (
+        speckle_data.proportion_goal < 0.0
+        or speckle_data.proportion_goal > 1.0
+    ):
+        raise SpeckleError("The proportion goal must be between 0 and 1")
+    elif speckle_data.proportion_goal == 0.0:
+        raise SpeckleError("The proportion goal cannot be 0")
+    elif speckle_data.proportion_goal == 1.0:
+        raise SpeckleError("The proportion goal cannot be 1")
+
+    # Image resolution
+    if not isinstance(speckle_data.image_res, int):
+        print("The image resolution must be an integer")
+        bad_parameter = True
+        return bad_parameter
+    elif speckle_data.image_res < 0.0:
+        print("The image resolution cannot be negative")
+        bad_parameter = True
+    elif speckle_data.image_res == 0.0:
+        print("The image resolution cannot be 0")
+        bad_parameter = True
+
+     # Bits
+    if speckle_data.bits < 2:
+        raise SpeckleError("The bit size cannot be smaller than 2")
+    elif speckle_data.bits > 16:
+        raise SpeckleError("The bit size cannot be larger than 16")
 
 
 class Speckle:
@@ -50,104 +108,8 @@ class Speckle:
     def __init__(self, speckle_data: SpeckleData, seed: int | None = None) -> None:
         self.speckle_data = speckle_data
         self.seed = seed
+        validate_speckle_data(speckle_data)
 
-    def _check_parameters(self) -> bool:
-        """
-        Method to check the input parameters of the class to ensure that they are reasonable
-            Returns:
-                bad_parameter (bool): A Boolean value indicating whether class
-                    instance contains a bad parameter or not
-        """
-        # Sizes
-        bad_parameter = False
-        if not (
-            isinstance(self.speckle_data.size_x, int)
-            and isinstance(self.speckle_data.size_y, int)
-        ):
-            print("The image size must be an integer")
-            bad_parameter = True
-            return bad_parameter
-        elif self.speckle_data.size_x == 0 or self.speckle_data.size_y == 0:
-            print("The image size cannot be 0, please enter a suitable integer")
-            bad_parameter = True
-        elif self.speckle_data.size_x < 0 or self.speckle_data.size_y < 0:
-            print("The image size cannot be negative")
-            bad_parameter = True
-        elif self.speckle_data.size_x <= 20 or self.speckle_data.size_y <= 20:
-            print("The image size is too small compared to the speckle radius")
-            bad_parameter = True
-
-        # Radius
-        if not isinstance(self.speckle_data.radius, int):
-            print("The radius must be an integer")
-            bad_parameter = True
-            return bad_parameter
-        elif self.speckle_data.radius == 0:
-            print("The radius cannot be 0, please enter a suitable integer")
-            bad_parameter = True
-        elif self.speckle_data.radius < 0:
-            print("The radius cannot be negative")
-            bad_parameter = True
-        elif (
-            self.speckle_data.radius > (self.speckle_data.size_x / 2)
-            or self.speckle_data.radius > self.speckle_data.size_y / 2
-        ):
-            print("The radius is too large compared to the image size")
-            bad_parameter = True
-
-        # Proportion
-        if not isinstance(self.speckle_data.proportion_goal, float):
-            print("The proportion goal must be a float")
-            bad_parameter = True
-            return bad_parameter
-        elif (
-            self.speckle_data.proportion_goal < 0.0
-            or self.speckle_data.proportion_goal > 1.0
-        ):
-            print("The proportion goal must be between 0 and 1")
-            bad_parameter = True
-        elif self.speckle_data.proportion_goal == 0.0:
-            print("The proportion goal cannot be 0")
-            bad_parameter = True
-        elif self.speckle_data.proportion_goal == 1.0:
-            print("The proportion goal cannot be 1")
-            bad_parameter = True
-
-        # White bg
-        if not isinstance(self.speckle_data.white_bg, bool):
-            print("The white background parameter must be a Boolean")
-            bad_parameter = True
-
-        # Image resolution
-        if not isinstance(self.speckle_data.image_res, int):
-            print("The image resolution must be an integer")
-            bad_parameter = True
-            return bad_parameter
-        elif self.speckle_data.image_res < 0.0:
-            print("The image resolution cannot be negative")
-            bad_parameter = True
-        elif self.speckle_data.image_res == 0.0:
-            print("The image resolution cannot be 0")
-            bad_parameter = True
-
-        # File format
-        if not isinstance(self.speckle_data.file_format, FileFormat):
-            print("The file format has to be an enum, defined in the FileFormat class")
-            bad_parameter = True
-
-        # Bits
-        if not isinstance(self.speckle_data.bits, int):
-            print("The bit size must be an integer")
-            bad_parameter = True
-            return bad_parameter
-        elif self.speckle_data.bits < 2:
-            print("The bit size cannot be smaller than 2")
-            bad_parameter = True
-        elif self.speckle_data.bits > 16:
-            print("The bit size cannot be larger than 16")
-            bad_parameter = True
-
-        return bad_parameter
 
     def make(self) -> np.ndarray:
         """
@@ -182,7 +144,8 @@ class Speckle:
         image = _threshold_image(self.speckle_data.radius, image, dist)
         del dist
 
-        # image = gaussian_filter(image, self.speckle_data.gauss_blur)
+        if self.speckle_data.gauss_blur is not None:
+            image = gaussian_filter(image, self.speckle_data.gauss_blur)
 
         image = np.max(image, axis=1)
         image = image.reshape(grid_shape)
@@ -347,10 +310,12 @@ def _px_locations(size_x: int, size_y: int) -> tuple[tuple, np.ndarray, np.ndarr
     px_centre_y = np.linspace(0.5, (size_y - 0.5), num=size_y)
     x_px_grid, y_px_grid = np.meshgrid(px_centre_x, px_centre_y)
     del (px_centre_x, px_centre_y)
+
     grid_shape = x_px_grid.shape
     x_px_2d = np.atleast_2d(x_px_grid.flatten())
     y_px_2d = np.atleast_2d(y_px_grid.flatten())
     del (x_px_grid, y_px_grid)
+
     x_px_trans = x_px_2d.T
     y_px_trans = y_px_2d.T
     del (x_px_2d, y_px_2d)
@@ -422,8 +387,8 @@ def mean_intensity_gradient(image: np.ndarray) -> tuple[float, float, float]:
     """
     intensity_gradient = np.gradient(image)
 
-    mig_x = np.mean(intensity_gradient[0].flatten())
-    mig_y = np.mean(intensity_gradient[1].flatten())
-    mig = np.mean(np.array(mig_x, mig_y))
+    mig_x = np.abs(np.mean(intensity_gradient[0].flatten()))
+    mig_y = np.abs(np.mean(intensity_gradient[1].flatten()))
+    mig = np.mean(np.array([mig_x, mig_y]))
 
     return (mig, mig_x, mig_y)
