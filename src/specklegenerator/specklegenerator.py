@@ -19,9 +19,9 @@ class FileFormat(Enum):
 
 @dataclass
 class SpeckleData:
-    """
-    Data class to store default parameters
-    Parameters:
+    """Data class to store default parameters
+
+    Args:
             size_x (int): An integer value of the horizontal size of speckle image in pixels
             size_y (int): An integer value of the vertical size of speckle image in pixels
             radius (int): An integer value of the radius of circles used in the speckle pattern
@@ -109,8 +109,7 @@ def validate_speckle_data(speckle_data: SpeckleData) -> None:
 
 
 class Speckle:
-    """
-    A class to generate, show and save a speckle pattern subject to input parameters
+    """A class to generate, show and save a speckle pattern subject to input parameters
     """
 
     def __init__(self, speckle_data: SpeckleData, seed: int | None = None) -> None:
@@ -171,12 +170,13 @@ class Speckle:
 
         return image
 
-    def _optimal_dot_number(self):
+    def _optimal_dot_number(self) -> tuple[int, int, int]:
         """Function to calculate the number of dots needed in the x and y directions
         to give the required b/w ratio
 
         Returns:
-            num_dots_x (int): The number of dots in the x-dir
+            tuple[int, int, int]:
+                num_dots_x (int): The number of dots in the x-dir
                 num_dots_y (int): The number of dots in the y-dir
                 n_tot (int): The total number of dots
         """
