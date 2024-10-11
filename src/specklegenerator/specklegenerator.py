@@ -56,7 +56,7 @@ def validate_speckle_data(speckle_data: SpeckleData) -> None:
         raise SpeckleError("The image size cannot be 0, please enter a suitable integer")
     elif speckle_data.size_x < 0 or speckle_data.size_y < 0:
         raise SpeckleError("The image size cannot be negative")
-    elif speckle_data.size_x <= 20 or speckle_data.size_y <= 20:
+    elif speckle_data.size_x <= 10 or speckle_data.size_y <= 10:
         raise SpeckleError("The image size is too small compared to the speckle radius")
 
     # Radius
@@ -150,12 +150,12 @@ class Speckle:
         image = np.max(image, axis=1)
         image = image.reshape(grid_shape)
 
-        if self.speckle_data.white_bg:
-            image = image * -1 + 1
+        if self.speckle_data.white_bg is True:
+            image = image * (-1) + 1
 
         bits_pp = (2**self.speckle_data.bits) - 1
         image = bits_pp * image
-        image = np.floor(image)
+        # image = np.floor(image)
 
         ratio = _colour_count(self.speckle_data.size_x, self.speckle_data.size_y, image)
         print("Final b/w ratio:", ratio)
@@ -333,14 +333,13 @@ def show_image(image: np.ndarray) -> None:
     plt.figure(figsize=((SpeckleData.size_x * px), (SpeckleData.size_y * px)))
     plt.xticks([])
     plt.yticks([])
-    plt.imshow(image, cmap="grey", vmin=0, vmax=1)
+    plt.imshow(image, cmap="grey")
     plt.show()
     plt.close()
 
 
 def save_image(
-    image: np.ndarray, directory: Path, filename: str, bits: int = SpeckleData.bits
-) -> None:
+    image: np.ndarray, directory: Path, filename: str, bits: int = SpeckleData.bits) -> None:
     """
     Saves image to specified filename and location
         Parameters:
@@ -366,8 +365,6 @@ def save_image(
         image = np.multiply(image, scale_up_factor)
     elif bits == 16:
         image = image.astype(np.uint16)
-    else:
-        print("Error: Bit depth added not acceptable")
 
     tiff_image = Image.fromarray(image)
     res = SpeckleData.image_res
