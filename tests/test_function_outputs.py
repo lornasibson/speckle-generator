@@ -90,8 +90,10 @@ def test_dot_locations():
     random_dots_2d_x = np.atleast_2d(random_dots_x)
     random_dots_2d_y = np.atleast_2d(random_dots_y)
 
-    npt.assert_array_equal(x_dot_2d, random_dots_2d_x)
-    npt.assert_array_equal(y_dot_2d, random_dots_2d_y)
+    npt.assert_array_equal(x_dot_2d, random_dots_2d_x,
+                           err_msg="The dot locations in the x-dir are not equal")
+    npt.assert_array_equal(y_dot_2d, random_dots_2d_y,
+                           err_msg="The dot locations in the y-dir are not equal")
 
 def test_random_location():
     from specklegenerator.specklegenerator import _random_location
@@ -174,8 +176,10 @@ def test_px_locations():
     )
 
     assert grid_shape == (4, 4)
-    npt.assert_array_equal(x_px_trans, x_px)
-    npt.assert_array_equal(y_px_trans, y_px)
+    npt.assert_array_equal(x_px_trans, x_px,
+                           err_msg="The pixel locations in the x-dir are not equal")
+    npt.assert_array_equal(y_px_trans, y_px,
+                           err_msg="The pixel locations in the y-dir are not equal")
 
 
 def test_save_image():
