@@ -10,8 +10,8 @@ class SpeckleError(Exception):
     pass
 
 class FileFormat(Enum):
-    """
-    Enum class to restrict the allowable output file formats
+    """Enum class to restrict the allowable output file formats
+
     """
 
     TIFF = "tiff"
@@ -44,13 +44,27 @@ class SpeckleData:
 
 
 def validate_speckle_data(speckle_data: SpeckleData) -> None:
+    """Method to check the input parameters of the class to ensure that they are reasonable
+
+    Args:
+        speckle_data (SpeckleData): Data class containing the input parameters
+
+    Raises:
+        SpeckleError: _description_
+        SpeckleError: _description_
+        SpeckleError: _description_
+        SpeckleError: _description_
+        SpeckleError: _description_
+        SpeckleError: _description_
+        SpeckleError: _description_
+        SpeckleError: _description_
+        SpeckleError: _description_
+        SpeckleError: _description_
+        SpeckleError: _description_
+        SpeckleError: _description_
+        SpeckleError: _description_
     """
 
-    Method to check the input parameters of the class to ensure that they are reasonable
-        Returns:
-            bad_parameter (bool): A Boolean value indicating whether class
-                instance contains a bad parameter or not
-    """
     # Sizes
     if speckle_data.size_x == 0 or speckle_data.size_y == 0:
         raise SpeckleError("The image size cannot be 0, please enter a suitable integer")
@@ -82,16 +96,10 @@ def validate_speckle_data(speckle_data: SpeckleData) -> None:
         raise SpeckleError("The proportion goal cannot be 1")
 
     # Image resolution
-    if not isinstance(speckle_data.image_res, int):
-        print("The image resolution must be an integer")
-        bad_parameter = True
-        return bad_parameter
-    elif speckle_data.image_res < 0.0:
-        print("The image resolution cannot be negative")
-        bad_parameter = True
+    if speckle_data.image_res < 0.0:
+        raise SpeckleError("The image resolution cannot be negative")
     elif speckle_data.image_res == 0.0:
-        print("The image resolution cannot be 0")
-        bad_parameter = True
+        raise SpeckleError("The image resolution cannot be 0")
 
      # Bits
     if speckle_data.bits < 2:
@@ -112,11 +120,12 @@ class Speckle:
 
 
     def make(self) -> np.ndarray:
+        """Produces a random speckle pattern with given parameters
+
+        Returns:
+            np.ndarray: An image array containing a speckle pattern
         """
-        Produces a random speckle pattern with given parameters
-            Returns:
-                image (np.ndarray): An image array containing a speckle pattern
-        """
+
         num_dots_x, num_dots_y, n_tot = self._optimal_dot_number()
         x_dot_2d, y_dot_2d = self._dot_locations(num_dots_x, num_dots_y, n_tot)
         grid_shape, x_px_trans, y_px_trans = _px_locations(
@@ -163,14 +172,15 @@ class Speckle:
         return image
 
     def _optimal_dot_number(self):
-        """
-        Function to calculate the number of dots needed in the x and y directions
+        """Function to calculate the number of dots needed in the x and y directions
         to give the required b/w ratio
-            Returns:
-                num_dots_x (int): The number of dots in the x-dir
+
+        Returns:
+            num_dots_x (int): The number of dots in the x-dir
                 num_dots_y (int): The number of dots in the y-dir
                 n_tot (int): The total number of dots
         """
+
         number_dots = (
             self.speckle_data.b_w_ratio
             * self.speckle_data.size_x
@@ -190,18 +200,19 @@ class Speckle:
         return (num_dots_x, num_dots_y, n_tot)
 
     def _dot_locations(
-        self, num_dots_x: int, num_dots_y: int, n_tot: int
-    ) -> tuple[np.ndarray, np.ndarray]:
+        self, num_dots_x: int, num_dots_y: int, n_tot: int) -> tuple[np.ndarray, np.ndarray]:
+        """_summary_
+
+        Args:
+            num_dots_x (int): Number of dots in the x-dir for the required b/w ratio
+            num_dots_y (int): Number of dots in the y-dir for the required b/w ratio
+            n_tot (int): The total number of dots for the required b/w ratio
+
+        Returns:
+            tuple[np.ndarray, np.ndarray]: The dot coordinates in the x-dir and
+            y-dir, as 2D arrays
         """
-        Finds the dot coordinates in an even grid and applies a function to move them randomly
-            Parameters:
-                num_dots_x (int): Number of dots in the x-dir for the required b/w ratio
-                num_dots_y (int): Number of dots in the y-dir for the required b/w ratio
-                n_tot (int): The total number of dots for the required b/w ratio
-            Returns:
-                x_dot_2d (np.ndarray): The dot coordinates in the x-dir, as a 2D array
-                y_dot_2d (np.ndarray): The dot coordinates in the y-dir, as a 2D array
-        """
+
         x_first_dot_pos = self.speckle_data.size_x / (num_dots_x * 2)
         y_first_dot_pos = self.speckle_data.size_y / (num_dots_y * 2)
         dot_centre_x = np.linspace(
@@ -234,18 +245,20 @@ class Speckle:
 
 
 def _threshold_image(radius: int, image: np.ndarray, dist: np.ndarray) -> np.ndarray:
-    """
-    Takes an image and adds dots in a contrasting colour
+    """Takes an image and adds dots in a contrasting colour
     Different grey levels are added between the background and dots to reduce the
     spatial frequency
-        Parameters:
-            radius (int): The radius of the dots added
-            image (np.ndarray): The image array to which the dots are added
-            dist (np.ndarray): An array of distances from each pixel centre to
+
+    Args:
+        radius (int): The radius of the dots added
+        image (np.ndarray): The image array to which the dots are added
+        dist (np.ndarray): An array of distances from each pixel centre to
                 each dot centre
-        Returns:
-            image (np.ndarray): The image array with dots added
+
+    Returns:
+        np.ndarray: The image array with dots added
     """
+
     grey_threshold = radius + 0.5
     image[dist <= grey_threshold] = 0.2
     grey_threshold -= 0.1
@@ -258,15 +271,18 @@ def _threshold_image(radius: int, image: np.ndarray, dist: np.ndarray) -> np.nda
 
 
 def _random_location(seed: int | None, radius: int, n_tot: int) -> np.ndarray:
-    """
-    Produces a vector the same size as the x and y coordinate vectors containing random values
-        Parameters:
-            n_tot (int): The numer of dots, so the size the vector needs to be
-            seed (int): A value to initialise the random number generator
-        Returns:
-            random_array (np.ndarray): An array of random numbers the same
+    """Produces a vector the same size as the x and y coordinate vectors containing random values
+
+    Args:
+        seed (int | None): A value to initialise the random number generator
+        radius (int): The radius of the dots, in pixels
+        n_tot (int): The numer of dots, so the size the vector needs to be
+
+    Returns:
+        np.ndarray: An array of random numbers the same
                 size as the dot location vector
     """
+
     rng = np.random.default_rng(seed)
     sigma = radius / 2.2
     random_array = rng.normal(loc=0.0, scale=sigma, size=n_tot)
@@ -274,17 +290,18 @@ def _random_location(seed: int | None, radius: int, n_tot: int) -> np.ndarray:
 
 
 def _colour_count(size_x: int, size_y: int, image: np.ndarray) -> float:
-    """
-    Return proportion of black pixels (with value 0) in image array as a percentage
-        Parameters:
-            image (array): A 2D image array of specified size, containing
+    """Return proportion of black pixels (with value 0) in image array as a percentage
+
+    Args:
+        size_x (int): The size of the image array in the x-dir
+        size_y (int): The size of the image array in the y-dir
+        image (np.ndarray): A 2D image array of specified size, containing
                 only pixels of value 0 and 225
-            proportion (float): A float containing the percentage proportion
-                of black (0) in the `image` array
-        Returns:
-            proportion (float): An updated percentage proportion of black
-                in the image array
+
+    Returns:
+        float: The proportion of black in the image array
     """
+
     count = 0
     proportion = 0
     colours, counts = np.unique(image, return_counts=1)
@@ -299,13 +316,19 @@ def _colour_count(size_x: int, size_y: int, image: np.ndarray) -> float:
 
 
 def _px_locations(size_x: int, size_y: int) -> tuple[tuple, np.ndarray, np.ndarray]:
-    """
-    Returns arrays of the pixel locations in both the x and y directions
-        Returns:
+    """Returns arrays of the pixel locations in both the x and y directions
+
+    Args:
+        size_x (int): The size of the image in the x-dir
+        size_y (int): The size of the image in the y-dir
+
+    Returns:
+        tuple[tuple, np.ndarray, np.ndarray]:
             x_px_grid (np.ndarray): The pixel locations in the x-dir as a 2D array the same shape as the image
             x_px_trans (np.ndarray): The pixel locations in the x-dir as a 2D array with values only in 1D
             y_px_trans (np.ndarray): The pixel locations in the y-dir as a 2D array with values only in 1D
     """
+
     px_centre_x = np.linspace(0.5, (size_x - 0.5), num=size_x)
     px_centre_y = np.linspace(0.5, (size_y - 0.5), num=size_y)
     x_px_grid, y_px_grid = np.meshgrid(px_centre_x, px_centre_y)
@@ -324,11 +347,12 @@ def _px_locations(size_x: int, size_y: int) -> tuple[tuple, np.ndarray, np.ndarr
 
 
 def show_image(image: np.ndarray) -> None:
+    """Defines figure size and formatting (no axes) and plots the image array in greyscale
+
+    Args:
+        image (np.ndarray): A 2D array to be plotted
     """
-    Defines figure size and formatting (no axes) and plots the image array in greyscale
-        Parameters:
-            image (arrray): A 2D array to be plotted
-    """
+
     px = 1 / plt.rcParams["figure.dpi"]
     plt.figure(figsize=((SpeckleData.size_x * px), (SpeckleData.size_y * px)))
     plt.xticks([])
@@ -340,11 +364,15 @@ def show_image(image: np.ndarray) -> None:
 
 def save_image(
     image: np.ndarray, directory: Path, filename: str, bits: int = SpeckleData.bits) -> None:
+    """Saves image to specified filename and location
+
+    Args:
+        image (np.ndarray): A 2D image array to be saved to an image format
+        directory (Path): The file directory to which the image should be saved
+        filename (str): The filename the image should be saved to
+        bits (int, optional): The bit size of the image. Defaults to SpeckleData.bits.
     """
-    Saves image to specified filename and location
-        Parameters:
-            image (arrray): A 2D array to be plotted
-    """
+
     filename_full = filename + "." + SpeckleData.file_format.value
     filepath = Path.joinpath(directory, filename_full)
     bits_pp = 2**bits - 1
@@ -372,16 +400,19 @@ def save_image(
 
 
 def mean_intensity_gradient(image: np.ndarray) -> tuple[float, float, float]:
-    """
-    Calculates the mean intensity gradient and returns the overall MIG
+    """Calculates the mean intensity gradient and returns the overall MIG
     as well as in the x and y directions
-        Parameters:
-            image (np.ndarray): The final image array
-        Returns:
+
+    Args:
+        image (np.ndarray): he final image array
+
+    Returns:
+        tuple[float, float, float]:
             mig (float): The overall mean intensity gradient for the image
             mig_x (float): The mean intensity gradient in the x-direction
             mig_y (float): The mean intensity gradient in the y-direction
     """
+
     intensity_gradient = np.gradient(image)
 
     mig_x = np.abs(np.mean(intensity_gradient[0].flatten()))
