@@ -11,6 +11,11 @@ import numpy.testing as npt
 from specklegenerator.specklegenerator import (
     Speckle,
     SpeckleData,
+    _random_location,
+    _px_locations,
+    save_image,
+    _colour_count,
+    _threshold_image
     )
 
 
@@ -37,7 +42,6 @@ def test_optimal_dot_number():
 
 
 def test_dot_locations():
-    from specklegenerator.specklegenerator import _random_location
     seed = 5
     data = SpeckleData(size_x=10, size_y=10, radius=1)
     speckler = Speckle(data, seed)
@@ -96,7 +100,6 @@ def test_dot_locations():
                            err_msg="The dot locations in the y-dir are not equal")
 
 def test_random_location():
-    from specklegenerator.specklegenerator import _random_location
     seed = 5
     data = SpeckleData(radius=1)
     speckler = Speckle(data, seed)
@@ -128,7 +131,6 @@ def test_random_location():
 
 
 def test_px_locations():
-    from specklegenerator.specklegenerator import _px_locations
     size_x = 4
     size_y = 4
 
@@ -183,7 +185,6 @@ def test_px_locations():
 
 
 def test_save_image():
-    from specklegenerator.specklegenerator import save_image
     filename = "save_image_test"
     directory = Path.cwd() / "images"
     data = SpeckleData()
@@ -203,7 +204,6 @@ def test_save_image():
 
 
 def test_colour_count():
-    from specklegenerator.specklegenerator import _colour_count
     image = np.array([[0, 0, 0, 0], [1, 1, 1, 1], [0, 0, 0, 0], [1, 1, 1, 1]])
     size_x = 4
     size_y = 4
@@ -214,7 +214,6 @@ def test_colour_count():
 
 
 def test_threshold_image():
-    from specklegenerator.specklegenerator import _threshold_image
     radius = 5
     dist = np.array([10, 7.5, 7, 6, 5.5, 5.4, 5.3, 5.2, 5, 4])
 
@@ -281,7 +280,6 @@ def test_bit_size_generated_image(bits, output):
     ],
 )
 def test_bit_size_saved_image(bits, output):
-    from specklegenerator.specklegenerator import save_image
     data = SpeckleData(bits=bits)
     speckle = Speckle(data)
     image = speckle.make()
