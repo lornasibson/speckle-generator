@@ -166,6 +166,18 @@ class Speckle:
                    n_dots:int,
                    x_dots: np.ndarray,
                    y_dots:np.ndarray) -> np.ndarray:
+        """Creates an image array with speckles using an iterative method to
+        reduce the load on the pc's memory
+
+        Args:
+            image (np.ndarray): An image array of zeros
+            n_dots (int): The number of dots in the image
+            x_dots (np.ndarray): An array containing the location of the dots in the x-dir
+            y_dots (np.ndarray): An array containing the location of the dots in the y-dir
+
+        Returns:
+            np.ndarray: An image array containing speckles
+        """
         x_px = np.linspace(0.5, (self.speckle_data.size_x - 0.5), num=self.speckle_data.size_x)
         y_px = np.linspace(0.5, (self.speckle_data.size_y - 0.5), num=self.speckle_data.size_y)
 
@@ -190,6 +202,20 @@ class Speckle:
                      y_px_trans:np.ndarray,
                      n_tot: int,
                      grid_shape) -> np.ndarray:
+        """Creates a speckle pattern using large arrays that utilise a pc's memory
+        capacity instead of computational power
+
+        Args:
+            x_dot_2d (np.ndarray): The location of the dots in the x-dir as a 2D array
+            y_dot_2d (np.ndarray): The location of the dots in the y-dir as a 2D array
+            x_px_trans (np.ndarray): The location of the pixel centres in the x-dir
+            y_px_trans (np.ndarray): The location of the pixel centres in the y-dir
+            n_tot (int): The total number of dots
+            grid_shape (_type_): The shape of the array of the pixel centres
+
+        Returns:
+            np.ndarray: An image array containing a speckle pattern
+        """
         x_px_same_dim = np.repeat(x_px_trans, n_tot, axis=1)
         x_dot_same_dim = np.repeat(
             x_dot_2d, (self.speckle_data.size_x * self.speckle_data.size_y), axis=0
@@ -249,7 +275,7 @@ class Speckle:
                        num_dots_x: int,
                        num_dots_y: int,
                        n_tot:int) -> tuple[np.ndarray, np.ndarray]:
-        """_summary_
+        """The locations of the randomised dot centres as 1D arrays
 
         Args:
             num_dots_x (int): Number of dots in the x-dir for the required b/w ratio
@@ -258,7 +284,7 @@ class Speckle:
 
         Returns:
             tuple[np.ndarray, np.ndarray]: The dot coordinates in the x-dir and
-            y-dir, as 2D arrays
+            y-dir
         """
 
         x_first_dot_pos = self.speckle_data.size_x / (num_dots_x * 2)
@@ -292,7 +318,17 @@ class Speckle:
     def _dot_locations_2d(self,
                           num_dots_x:int,
                           num_dots_y:int,
-                          n_tot:int):
+                          n_tot:int) -> tuple[np.ndarray, np.ndarray]:
+        """Method to output the centre locations of the randomised dots as 2D arrays
+
+        Args:
+            num_dots_x (int): Number of dots in the x-dir for the required b/w ratio
+            num_dots_y (int): Number of dots in the y-dir for the required b/w ratio
+            n_tot (int): The total number of dots for the required b/w ratio
+
+        Returns:
+            tuple[np.ndarray, np.ndarray]: 2D arrays of the randomised dot centres
+        """
         x_first_dot_pos = self.speckle_data.size_x / (num_dots_x * 2)
         y_first_dot_pos = self.speckle_data.size_y / (num_dots_y * 2)
         dot_centre_x = np.linspace(
