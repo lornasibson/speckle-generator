@@ -50,19 +50,19 @@ def validate_speckle_data(speckle_data: SpeckleData) -> None:
         speckle_data (SpeckleData): Data class containing the input parameters
 
     Raises:
-        SpeckleError: _description_
-        SpeckleError: _description_
-        SpeckleError: _description_
-        SpeckleError: _description_
-        SpeckleError: _description_
-        SpeckleError: _description_
-        SpeckleError: _description_
-        SpeckleError: _description_
-        SpeckleError: _description_
-        SpeckleError: _description_
-        SpeckleError: _description_
-        SpeckleError: _description_
-        SpeckleError: _description_
+        SpeckleError: The image size cannot be 0, please enter a suitable integer
+        SpeckleError: The image size cannot be negative
+        SpeckleError: The image size is too small compared to the speckle radius
+        SpeckleError: The radius cannot be 0, please enter a suitable integer
+        SpeckleError: The radius cannot be negative
+        SpeckleError: The radius is too large compared to the image size
+        SpeckleError: The black/white ratio must be between 0 and 1
+        SpeckleError: The black/white ratio cannot be 0
+        SpeckleError: The black/white cannot be 1
+        SpeckleError: The image resolution cannot be negative
+        SpeckleError: The image resolution cannot be 0
+        SpeckleError: The bit size cannot be smaller than 2
+        SpeckleError: The bit size cannot be larger than 16
     """
 
     # Sizes
@@ -89,11 +89,11 @@ def validate_speckle_data(speckle_data: SpeckleData) -> None:
         speckle_data.b_w_ratio < 0.0
         or speckle_data.b_w_ratio > 1.0
     ):
-        raise SpeckleError("The proportion goal must be between 0 and 1")
+        raise SpeckleError("The black/white ratio must be between 0 and 1")
     elif speckle_data.b_w_ratio == 0.0:
-        raise SpeckleError("The proportion goal cannot be 0")
+        raise SpeckleError("The black/white ratio cannot be 0")
     elif speckle_data.b_w_ratio == 1.0:
-        raise SpeckleError("The proportion goal cannot be 1")
+        raise SpeckleError("The black/white cannot be 1")
 
     # Image resolution
     if speckle_data.image_res < 0.0:
@@ -189,6 +189,7 @@ class Speckle:
             y_dot = y_dots[i]
             dist = np.sqrt(
             (x_dot - x_px_grid) ** 2 + (y_dot - y_px_grid) ** 2)
+            # image[dist <= self.speckle_data.radius] = 1
             image = _threshold_image(self.speckle_data.radius, image, dist)
             del(dist)
 
@@ -234,7 +235,7 @@ class Speckle:
         del (x_dot_same_dim, x_px_same_dim, y_dot_same_dim, y_px_same_dim)
 
         image = np.zeros_like(dist)
-        image[dist <= self.speckle_data.radius] = 1
+        image = _threshold_image(self.speckle_data.radius, image, dist)
         del dist
 
         image = np.max(image, axis=1)
@@ -376,13 +377,21 @@ def _threshold_image(radius: int, image: np.ndarray, dist: np.ndarray) -> np.nda
     """
 
     grey_threshold = radius + 1
-    image[dist <= grey_threshold] = 0.2
+    mask = (dist <= grey_threshold) & (image != 1)
+    image[mask] = 0.2
+
     grey_threshold -= 0.3
-    image[dist <= grey_threshold] = 0.3
+    mask = (dist <= grey_threshold) & (image != 1)
+    image[mask] = 0.3
+
     grey_threshold -= 0.3
-    image[dist <= grey_threshold] = 0.5
+    mask = (dist <= grey_threshold) & (image != 1)
+    image[mask] = 0.5
+
     grey_threshold -= 0.2
-    image[dist <= grey_threshold] = 0.8
+    mask = (dist <= grey_threshold) & (image != 1)
+    image[mask] = 0.8
+
     image[dist <= radius] = 1
 
     return image
