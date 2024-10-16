@@ -177,7 +177,7 @@ class Speckle:
             y_dot = y_dots[i]
             dist = np.sqrt(
             (x_dot - x_px_grid) ** 2 + (y_dot - y_px_grid) ** 2)
-            image[dist <= self.speckle_data.radius] = 1
+            image = _threshold_image(self.speckle_data.radius, image, dist)
             del(dist)
 
         return image
@@ -339,12 +339,13 @@ def _threshold_image(radius: int, image: np.ndarray, dist: np.ndarray) -> np.nda
         np.ndarray: The image array with dots added
     """
 
-
-    grey_threshold = radius + 0.5
+    grey_threshold = radius + 1
     image[dist <= grey_threshold] = 0.2
-    grey_threshold -= 0.1
+    grey_threshold -= 0.3
+    image[dist <= grey_threshold] = 0.3
+    grey_threshold -= 0.3
     image[dist <= grey_threshold] = 0.5
-    grey_threshold -= 0.1
+    grey_threshold -= 0.2
     image[dist <= grey_threshold] = 0.8
     image[dist <= radius] = 1
 
