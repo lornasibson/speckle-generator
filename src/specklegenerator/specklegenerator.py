@@ -126,11 +126,70 @@ class Speckle:
         """
 
         num_dots_x, num_dots_y, n_tot = self._optimal_dot_number()
-        x_dot_2d, y_dot_2d = self._dot_locations(num_dots_x, num_dots_y, n_tot)
-        grid_shape, x_px_trans, y_px_trans = _px_locations(
-            self.speckle_data.size_x, self.speckle_data.size_y
-        )
+        image = np.zeros((self.speckle_data.size_x, self.speckle_data.size_y))
 
+        elements = self.speckle_data.size_x * self.speckle_data.size_y * n_tot
+        if elements < 220000000:
+            x_dot_2d, y_dot_2d = self._dot_locations_2d(num_dots_x, num_dots_y, n_tot)
+            grid_shape, x_px_trans, y_px_trans = _px_locations(self.speckle_data.size_x,
+                                                   self.speckle_data.size_y)
+            image = self._make_in_mem(x_dot_2d,
+                                      y_dot_2d,
+                                      x_px_trans,
+                                      y_px_trans,
+                                      n_tot,
+                                      grid_shape)
+        else:
+            x_dots, y_dots = self._dot_locations(num_dots_x, num_dots_y, n_tot)
+            image = self._make_loop(image, n_tot, x_dots, y_dots)
+
+
+        if self.speckle_data.gauss_blur is not None:
+            image = gaussian_filter(image, self.speckle_data.gauss_blur)
+
+
+
+        if self.speckle_data.white_bg is True:
+            image = image * (-1) + 1
+
+        bits_pp = (2**self.speckle_data.bits) - 1
+        image = bits_pp * image
+        image = np.floor(image)
+
+        ratio = _colour_count(self.speckle_data.size_x, self.speckle_data.size_y, image)
+        print("Final b/w ratio:", ratio)
+
+        return image
+
+    def _make_loop(self,
+                   image: np.ndarray,
+                   n_dots:int,
+                   x_dots: np.ndarray,
+                   y_dots:np.ndarray) -> np.ndarray:
+        x_px = np.linspace(0.5, (self.speckle_data.size_x - 0.5), num=self.speckle_data.size_x)
+        y_px = np.linspace(0.5, (self.speckle_data.size_y - 0.5), num=self.speckle_data.size_y)
+
+        x_px_grid, y_px_grid = np.meshgrid(x_px, y_px)
+        del (x_px, y_px)
+
+        for i in range(n_dots):
+            x_dot = x_dots[i]
+            y_dot = y_dots[i]
+            dist = np.sqrt(
+            (x_dot - x_px_grid) ** 2 + (y_dot - y_px_grid) ** 2)
+            image[dist <= self.speckle_data.radius] = 1
+            del(dist)
+
+        return image
+
+
+    def _make_in_mem(self,
+                     x_dot_2d:np.ndarray,
+                     y_dot_2d: np.ndarray,
+                     x_px_trans:np.ndarray,
+                     y_px_trans:np.ndarray,
+                     n_tot: int,
+                     grid_shape) -> np.ndarray:
         x_px_same_dim = np.repeat(x_px_trans, n_tot, axis=1)
         x_dot_same_dim = np.repeat(
             x_dot_2d, (self.speckle_data.size_x * self.speckle_data.size_y), axis=0
@@ -149,24 +208,11 @@ class Speckle:
         del (x_dot_same_dim, x_px_same_dim, y_dot_same_dim, y_px_same_dim)
 
         image = np.zeros_like(dist)
-        image = _threshold_image(self.speckle_data.radius, image, dist)
+        image[dist <= self.speckle_data.radius] = 1
         del dist
-
-        if self.speckle_data.gauss_blur is not None:
-            image = gaussian_filter(image, self.speckle_data.gauss_blur)
 
         image = np.max(image, axis=1)
         image = image.reshape(grid_shape)
-
-        if self.speckle_data.white_bg is True:
-            image = image * (-1) + 1
-
-        bits_pp = (2**self.speckle_data.bits) - 1
-        image = bits_pp * image
-        # image = np.floor(image)
-
-        ratio = _colour_count(self.speckle_data.size_x, self.speckle_data.size_y, image)
-        print("Final b/w ratio:", ratio)
 
         return image
 
@@ -199,8 +245,10 @@ class Speckle:
 
         return (num_dots_x, num_dots_y, n_tot)
 
-    def _dot_locations(
-        self, num_dots_x: int, num_dots_y: int, n_tot: int) -> tuple[np.ndarray, np.ndarray]:
+    def _dot_locations(self,
+                       num_dots_x: int,
+                       num_dots_y: int,
+                       n_tot:int) -> tuple[np.ndarray, np.ndarray]:
         """_summary_
 
         Args:
@@ -213,6 +261,38 @@ class Speckle:
             y-dir, as 2D arrays
         """
 
+        x_first_dot_pos = self.speckle_data.size_x / (num_dots_x * 2)
+        y_first_dot_pos = self.speckle_data.size_y / (num_dots_y * 2)
+        dot_centre_x = np.linspace(
+            x_first_dot_pos,
+            (self.speckle_data.size_x - x_first_dot_pos),
+            num=num_dots_x,
+        )
+        dot_centre_y = np.linspace(
+            y_first_dot_pos,
+            (self.speckle_data.size_y - y_first_dot_pos),
+            num=num_dots_y,
+        )
+
+        dot_x_grid, dot_y_grid = np.meshgrid(dot_centre_x, dot_centre_y)
+        del (dot_centre_x, dot_centre_y)
+        x_dot_vec = dot_x_grid.flatten()
+        y_dot_vec = dot_y_grid.flatten()
+        del (dot_x_grid, dot_y_grid)
+        x_dot_random = np.add(
+            x_dot_vec, _random_location(self.seed, self.speckle_data.radius, n_tot)
+        )
+        y_dot_random = np.add(
+            y_dot_vec, _random_location(self.seed, self.speckle_data.radius, n_tot)
+        )
+        del (x_dot_vec, y_dot_vec)
+
+        return (x_dot_random, y_dot_random)
+
+    def _dot_locations_2d(self,
+                          num_dots_x:int,
+                          num_dots_y:int,
+                          n_tot:int):
         x_first_dot_pos = self.speckle_data.size_x / (num_dots_x * 2)
         y_first_dot_pos = self.speckle_data.size_y / (num_dots_y * 2)
         dot_centre_x = np.linspace(
@@ -258,6 +338,7 @@ def _threshold_image(radius: int, image: np.ndarray, dist: np.ndarray) -> np.nda
     Returns:
         np.ndarray: The image array with dots added
     """
+
 
     grey_threshold = radius + 0.5
     image[dist <= grey_threshold] = 0.2
@@ -415,8 +496,8 @@ def mean_intensity_gradient(image: np.ndarray) -> tuple[float, float, float]:
 
     intensity_gradient = np.gradient(image)
 
-    mig_x = np.abs(np.mean(intensity_gradient[0].flatten()))
-    mig_y = np.abs(np.mean(intensity_gradient[1].flatten()))
-    mig = np.mean(np.array([mig_x, mig_y]))
+    mig_x = np.round(np.abs(np.mean(intensity_gradient[0].flatten())), decimals=3)
+    mig_y = np.round(np.abs(np.mean(intensity_gradient[1].flatten())), decimals=3)
+    mig = np.round(np.mean(np.array([mig_x, mig_y])), decimals=3)
 
     return (mig, mig_x, mig_y)
