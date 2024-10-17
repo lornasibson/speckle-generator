@@ -10,9 +10,7 @@ from specklegenerator.specklegenerator import (
     show_image,
     save_image,
     mean_intensity_gradient,
-    _colour_count,
 )
-# mean_intensity_gradient)
 
 
 def main() -> None:
@@ -23,22 +21,26 @@ def main() -> None:
     - Image displayed on screen
     - Image saved to specifed filename in specified location
     """
-    filename = "speckle_bg"
+    filename = "speckle_new_threshold"
     directory = Path.cwd() / "images"
-    speckle_data = SpeckleData(size_x=500,
-                               size_y=500,
-                               radius=10,
-                               b_w_ratio=0.75,
-                               white_bg=False,
+    speckle_data = SpeckleData(size_x=400,
+                               size_y=400,
+                               radius=7,
+                               b_w_ratio=0.5,
+                               white_bg=True,
                                bits=8,
                                )
 
     speckle = Speckle(speckle_data)
-
     image = speckle.make()
     print(f"{mean_intensity_gradient(image)=}")
-    save_image(image, directory, filename, bits=speckle_data.bits)
-
+    show_image(image)
+    save_image(image, directory, filename, speckle_data.bits)
+    count = 0
+    colours, counts = np.unique(image, return_counts=1)
+    for index, colour in enumerate(colours):
+        count = counts[index]
+        print('Colour:', colour, 'Count:', count)
 
 
 if __name__ == "__main__":
