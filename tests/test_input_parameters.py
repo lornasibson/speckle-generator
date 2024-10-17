@@ -62,7 +62,7 @@ def test_b_w_ratio_inputs(b_w_ratio, output):
 @pytest.mark.parametrize(
     "white_bg, output",
     [
-        pytest.param(True, pytest.raises(SpeckleError), id="white bg True"),
+        pytest.param(True, does_not_raise(), id="white bg True"),
         pytest.param(False, does_not_raise(), id="white bg false"),
     ],
 )
