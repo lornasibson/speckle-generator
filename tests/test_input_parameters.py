@@ -86,15 +86,10 @@ def test_image_res_inputs(image_res, output):
         validate_speckle_data(data)
 
 
-@pytest.mark.parametrize(
-    "file_format, output",
-    [
-        pytest.param(FileFormat.TIFF, does_not_raise, id="file format correct"),
-    ],
-)
-def test_file_format_inputs(file_format, output):
-    data = SpeckleData(file_format=file_format)
-
+def test_file_format_inputs():
+    fileformat = FileFormat.TIFF
+    data = SpeckleData(file_format=fileformat)
+    assert validate_speckle_data(data) is None
 
 
 @pytest.mark.parametrize(
