@@ -70,7 +70,9 @@ def validate_speckle_data(speckle_data: SpeckleData) -> None:
         raise SpeckleError("The image size cannot be 0, please enter a suitable integer")
     elif speckle_data.size_x < 0 or speckle_data.size_y < 0:
         raise SpeckleError("The image size cannot be negative")
-    elif speckle_data.size_x <= 10 or speckle_data.size_y <= 10:
+    elif (
+        speckle_data.size_x <= (speckle_data.radius * 2)
+        or speckle_data.size_y <= (speckle_data.radius * 2)):
         raise SpeckleError("The image size is too small compared to the speckle radius")
 
     # Radius
@@ -189,7 +191,6 @@ class Speckle:
             y_dot = y_dots[i]
             dist = np.sqrt(
             (x_dot - x_px_grid) ** 2 + (y_dot - y_px_grid) ** 2)
-            # image[dist <= self.speckle_data.radius] = 1
             image = _threshold_image(self.speckle_data.radius, image, dist)
             del(dist)
 
