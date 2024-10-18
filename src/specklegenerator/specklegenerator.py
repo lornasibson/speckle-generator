@@ -490,7 +490,12 @@ def show_image(image: np.ndarray) -> None:
 
 
 def save_image(
-    image: np.ndarray, directory: Path, filename: str, bits: int = SpeckleData.bits) -> None:
+    image: np.ndarray,
+    directory: Path,
+    filename: str,
+    bits: int = SpeckleData.bits,
+    file_format: FileFormat = SpeckleData.file_format,
+    image_res: int = SpeckleData.image_res) -> None:
     """Saves image to specified filename and location
 
     Args:
@@ -499,8 +504,7 @@ def save_image(
         filename (str): The filename the image should be saved to
         bits (int, optional): The bit size of the image. Defaults to SpeckleData.bits.
     """
-
-    filename_full = filename + "." + SpeckleData.file_format.value
+    filename_full = filename + "." + file_format.value
     filepath = Path.joinpath(directory, filename_full)
     bits_pp = 2**bits - 1
 
@@ -522,8 +526,8 @@ def save_image(
         image = image.astype(np.uint16)
 
     tiff_image = Image.fromarray(image)
-    res = SpeckleData.image_res
-    tiff_image.save(filepath, SpeckleData.file_format.value, dpi=(res, res))
+    res = image_res
+    tiff_image.save(filepath, file_format.value, dpi=(res, res))
 
 
 def mean_intensity_gradient(image: np.ndarray) -> tuple[float, float, float]:
