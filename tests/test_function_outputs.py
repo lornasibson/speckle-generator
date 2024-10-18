@@ -91,12 +91,10 @@ def test_dot_locations():
     random_array = _random_location(seed, 1, 16)
     random_dots_x = np.add(dot_x_vec, random_array)
     random_dots_y = np.add(dot_y_vec, random_array)
-    random_dots_2d_x = np.atleast_2d(random_dots_x)
-    random_dots_2d_y = np.atleast_2d(random_dots_y)
 
-    npt.assert_array_equal(x_dot_2d, random_dots_2d_x,
+    npt.assert_array_equal(x_dot_2d, random_dots_x,
                            err_msg="The dot locations in the x-dir are not equal")
-    npt.assert_array_equal(y_dot_2d, random_dots_2d_y,
+    npt.assert_array_equal(y_dot_2d, random_dots_y,
                            err_msg="The dot locations in the y-dir are not equal")
 
 def test_random_location():
@@ -215,24 +213,32 @@ def test_colour_count():
 
 def test_threshold_image():
     radius = 5
-    dist = np.array([10, 7.5, 7, 6, 5.5, 5.4, 5.3, 5.2, 5, 4])
-
     image = np.zeros((10, 10))
+
+    dist = np.array([[10, 10, 10, 10, 10, 10, 10, 10, 10, 10],
+                    [7, 7, 7, 7, 7, 7, 7, 7, 7, 7],
+                    [5.9, 5.9, 5.9, 5.9, 5.9, 5.9, 5.9, 5.9, 5.9, 5.9],
+                    [5.6, 5.6, 5.6, 5.6, 5.6, 5.6, 5.6, 5.6, 5.6, 5.6],
+                    [5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5, 5.5],
+                    [5.4, 5.4, 5.4, 5.4, 5.4, 5.4, 5.4, 5.4, 5.4, 5.4],
+                    [5.3, 5.3, 5.3, 5.3, 5.3, 5.3, 5.3, 5.3, 5.3, 5.3],
+                    [5.2, 5.2, 5.2, 5.2, 5.2, 5.2, 5.2, 5.2, 5.2, 5.2],
+                    [5, 5, 5, 5, 5, 5, 5, 5, 5, 5],
+                    [4, 4, 4, 4, 4, 4, 4, 4, 4, 4]])
 
     correct_image = np.array(
         [
             [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2],
+            [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3],
+            [0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3],
+            [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
             [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5],
             [0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
-            [0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8],
             [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
             [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-        ]
-    )
+        ])
 
     image_output = _threshold_image(radius, image, dist)
     npt.assert_array_equal(image_output, correct_image)
