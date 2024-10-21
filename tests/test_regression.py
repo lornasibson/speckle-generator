@@ -8,7 +8,12 @@ from pathlib import Path
 from PIL import Image
 import numpy as np
 import numpy.testing as npt
-from specklegenerator.specklegenerator import Speckle, SpeckleData, FileFormat, save_image
+from specklegenerator.specklegenerator import (
+    Speckle,
+    SpeckleData,
+    FileFormat,
+    save_image
+)
 
 @pytest.fixture(autouse=True)
 def setup_teardown():
