@@ -5,6 +5,7 @@ from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 # from scipy.ndimage import gaussian_filter
+import dask.array as da
 
 class SpeckleError(Exception):
     pass
@@ -142,8 +143,18 @@ class Speckle:
                                       n_tot,
                                       grid_shape)
         else:
-            x_dots, y_dots = self._dot_locations(num_dots_x, num_dots_y, n_tot)
-            image = self._make_loop(image, n_tot, x_dots, y_dots)
+            x_dot_2d, y_dot_2d = self._dot_locations_2d(num_dots_x, num_dots_y, n_tot)
+            grid_shape, x_px_trans, y_px_trans = _px_locations(self.speckle_data.size_x,
+                                                   self.speckle_data.size_y)
+            image = self._make_with_dask(x_dot_2d,
+                                      y_dot_2d,
+                                      x_px_trans,
+                                      y_px_trans,
+                                      n_tot,
+                                      grid_shape)
+        # else:
+        #     x_dots, y_dots = self._dot_locations(num_dots_x, num_dots_y, n_tot)
+        #     image = self._make_loop(image, n_tot, x_dots, y_dots)
 
 
         # if self.speckle_data.gauss_blur is not None:
@@ -158,8 +169,8 @@ class Speckle:
         image = bits_pp * image
         image = np.floor(image)
 
-        ratio = _colour_count(self.speckle_data.size_x, self.speckle_data.size_y, image)
-        print("Final b/w ratio:", ratio)
+        # ratio = _colour_count(self.speckle_data.size_x, self.speckle_data.size_y, image)
+        # print("Final b/w ratio:", ratio)
 
         return image
 
@@ -193,6 +204,50 @@ class Speckle:
             (x_dot - x_px_grid) ** 2 + (y_dot - y_px_grid) ** 2)
             image = _threshold_image(self.speckle_data.radius, image, dist)
             del(dist)
+
+        return image
+
+    def _make_with_dask(self,
+                        x_dot_2d: np.ndarray,
+                        y_dot_2d: np.ndarray,
+                        x_px_trans:np.ndarray,
+                        y_px_trans:np.ndarray,
+                        n_tot: int,
+                        grid_shape) -> np.ndarray:
+        x_px_trans = da.from_array(x_px_trans, chunks='auto')
+        y_px_trans = da.from_array(y_px_trans)
+        x_dot_2d = da.from_array(y_dot_2d)
+        y_dot_2d = da.from_array(y_dot_2d)
+
+
+        x_px_same_dim = da.repeat(x_px_trans, n_tot, axis=1)
+
+        x_dot_same_dim = da.repeat(
+            x_dot_2d,
+            (self.speckle_data.size_x * self.speckle_data.size_y),
+            axis=0)
+        y_px_same_dim = da.repeat(y_px_trans, n_tot, axis=1)
+        y_dot_same_dim = da.repeat(
+            y_dot_2d,
+            (self.speckle_data.size_x * self.speckle_data.size_y),
+            axis=0)
+        del (x_px_trans, x_dot_2d, y_px_trans, y_dot_2d)
+
+        dist = da.sqrt(
+            (x_dot_same_dim - x_px_same_dim) ** 2
+            + (y_dot_same_dim - y_px_same_dim) ** 2
+        )
+
+        del (x_dot_same_dim, x_px_same_dim, y_dot_same_dim, y_px_same_dim)
+
+        image = da.zeros_like(dist)
+        image = _threshold_image(self.speckle_data.radius, image, dist)
+        del dist
+
+        image = da.max(image, axis=1)
+        image = da.reshape(image, grid_shape)
+
+        print('Completed')
 
         return image
 
