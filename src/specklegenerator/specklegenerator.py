@@ -4,7 +4,7 @@ from enum import Enum
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.ndimage import gaussian_filter
+# from scipy.ndimage import gaussian_filter
 
 class SpeckleError(Exception):
     pass
@@ -146,8 +146,8 @@ class Speckle:
             image = self._make_loop(image, n_tot, x_dots, y_dots)
 
 
-        if self.speckle_data.gauss_blur is not None:
-            image = gaussian_filter(image, self.speckle_data.gauss_blur)
+        # if self.speckle_data.gauss_blur is not None:
+        #     image = gaussian_filter(image, self.speckle_data.gauss_blur)
 
 
 
