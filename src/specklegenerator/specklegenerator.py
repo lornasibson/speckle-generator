@@ -6,6 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 # from scipy.ndimage import gaussian_filter
 import dask.array as da
+from dask.diagnostics import Profiler, ResourceProfiler, CacheProfiler
+from dask.diagnostics import ProgressBar
+from dask.distributed import Client
 
 class SpeckleError(Exception):
     pass
@@ -214,38 +217,71 @@ class Speckle:
                         y_px_trans:np.ndarray,
                         n_tot: int,
                         grid_shape) -> np.ndarray:
-        x_px_trans = da.from_array(x_px_trans, chunks='auto')
-        y_px_trans = da.from_array(y_px_trans)
-        x_dot_2d = da.from_array(y_dot_2d)
-        y_dot_2d = da.from_array(y_dot_2d)
+        client= Client()
+        print(client.dashboard_link)
+        x_px_trans = da.from_array(x_px_trans, chunks=(1000, 1))
+        print(f"{x_px_trans=}")
+        print(f"{x_px_trans.compute_chunk_sizes()=}")
+        y_px_trans = da.from_array(y_px_trans, chunks=(1000, 1))
+        x_dot_2d = da.from_array(y_dot_2d, chunks=(1000, 1))
+        y_dot_2d = da.from_array(y_dot_2d, chunks=(1000, 1))
 
+        x_px_same_dim = x_px_trans * da.ones((1, n_tot))
+        x_px_same_dim = x_px_same_dim.rechunk((2000, 2000))
+        print(f"{x_px_same_dim=}")
 
-        x_px_same_dim = da.repeat(x_px_trans, n_tot, axis=1)
+        x_dot_same_dim = x_dot_2d * da.ones(((self.speckle_data.size_x * self.speckle_data.size_y), 1))
+        x_dot_same_dim = x_dot_same_dim.rechunk((2000, 2000))
+        print(f"{x_dot_same_dim=}")
 
-        x_dot_same_dim = da.repeat(
-            x_dot_2d,
-            (self.speckle_data.size_x * self.speckle_data.size_y),
-            axis=0)
-        y_px_same_dim = da.repeat(y_px_trans, n_tot, axis=1)
-        y_dot_same_dim = da.repeat(
-            y_dot_2d,
-            (self.speckle_data.size_x * self.speckle_data.size_y),
-            axis=0)
-        del (x_px_trans, x_dot_2d, y_px_trans, y_dot_2d)
+        y_px_same_dim = y_px_trans * da.ones((1, n_tot))
+        y_px_same_dim = y_px_same_dim.rechunk((2000, 2000))
+
+        y_dot_same_dim = y_dot_2d * da.ones(((self.speckle_data.size_x * self.speckle_data.size_y), 1))
+        y_dot_same_dim = y_dot_same_dim.rechunk((2000, 2000))
+
+        del x_px_trans, x_dot_2d, y_px_trans, y_dot_2d
 
         dist = da.sqrt(
             (x_dot_same_dim - x_px_same_dim) ** 2
             + (y_dot_same_dim - y_px_same_dim) ** 2
         )
 
-        del (x_dot_same_dim, x_px_same_dim, y_dot_same_dim, y_px_same_dim)
+        del x_dot_same_dim, x_px_same_dim, y_dot_same_dim, y_px_same_dim
 
         image = da.zeros_like(dist)
         image = _threshold_image(self.speckle_data.radius, image, dist)
+
         del dist
 
         image = da.max(image, axis=1)
-        image = da.reshape(image, grid_shape)
+        small_image = da.reshape(image, grid_shape)
+        del(image)
+
+        image_chunked = small_image.rechunk((2000, 2000))
+        del small_image
+        print(f"{image_chunked.shape=}")
+        print(f"{image_chunked.chunks=}")
+        print(f"{image_chunked=}")
+
+        with Profiler() as prof, ResourceProfiler() as rprof:
+            with ProgressBar():
+                image = image_chunked.compute()
+
+        print(prof)
+        print(rprof)
+
+        # Compute and create a fresh Dask array
+        # new_image = da.from_array(small_image.compute(), chunks=(2000, 2000))
+
+
+        # print(f"{new_image.shape=}")
+        # print(f"{new_image.chunks=}")
+
+
+        # new_image.compute()
+
+
 
         print('Completed')
 
