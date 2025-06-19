@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "specklegenerator"
+version = "0.0.1"
+description = "A speckle pattern generator"
+authors = [
+  { name = "lornasibson", email = "lorna.sibson@ukaea.uk" },
+]
+license = { file = "LICENSE" }
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: MIT",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.11"
+dependencies = [
+  "numpy>=1.26.0",
+  "matplotlib>=3.8",
+  "scipy==1.11.3",
+]
+
+[project.urls]
+"Repository" = "https://github.com/lornasibson/speckle-generator"
+"Issue Tracker" = "https://github.com/lornasibson/speckle-generator/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
